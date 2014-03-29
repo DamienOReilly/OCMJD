@@ -1,0 +1,8 @@
+bin
+*.xml
+.git
+.idea
+target
+.classpath
+.project
+*.iml
