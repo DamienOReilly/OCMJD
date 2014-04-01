@@ -140,9 +140,9 @@ public class DatabaseIO {
      *
      * @param recNo
      *         Record ID to verify
-     * @throws RecordNotFoundException
+     * @throws RecordNotFoundException If the record was not found or is invalid.
      */
-    private void checkRecordId(int recNo) throws RecordNotFoundException {
+    public void checkRecordId(int recNo) throws RecordNotFoundException {
         try {
             records.get(recNo);
         } catch (IndexOutOfBoundsException e) {

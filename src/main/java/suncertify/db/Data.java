@@ -12,6 +12,10 @@ public class Data implements DB {
      */
     private static DatabaseIO database;
 
+    /**
+     * Singleton Lock Handler for transactional safety.
+     */
+    private static DatabaseLockHandler databaseLockHandler = DatabaseLockHandler.getInstance();
 
     /**
      * @param databasePath
@@ -53,16 +57,34 @@ public class Data implements DB {
         return 0;
     }
 
+    /**
+     * @param recNo
+     *         The record number of the record to lock
+     * @return
+     * @throws RecordNotFoundException
+     */
     @Override
     public long lock(int recNo) throws RecordNotFoundException {
-        //checkRecordId(recNo);
-        return 0;
+        database.checkRecordId(recNo);
+        return databaseLockHandler.lock(recNo);
     }
 
+    /**
+     *
+     * @param recNo
+     *         The record number of the record to unlock
+     * @param cookie
+     *         The cookie that the record was originally locked with
+     * @throws RecordNotFoundException
+     * @throws SecurityException
+     */
     @Override
     public void unlock(int recNo, long cookie) throws RecordNotFoundException, SecurityException {
-
+        database.checkRecordId(recNo);
+        databaseLockHandler.unlock(recNo, cookie);
     }
 
-
+    public void close() {
+        database.close();
+    }
 }
