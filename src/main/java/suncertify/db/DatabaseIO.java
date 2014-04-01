@@ -60,7 +60,8 @@ public class DatabaseIO {
                     String[] record = new String[DatabaseSchema.NUMBER_OF_FIELDS];
 
                     for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
-                        record[i] = Utils.readBytesAsString(database, DatabaseSchema.fields.get(i).getLength());
+                        record[i] = Utils.readBytesAsString(database, DatabaseSchema.fields.get(i).getLength(),
+                                DatabaseSchema.CHARSET_ENCODING);
                     }
                     records.add(record);
                 } else {
@@ -109,7 +110,7 @@ public class DatabaseIO {
                 // Read the field name length.
                 short fieldNameLength = database.readShort();
                 // Read the actual field name.
-                String fieldName = Utils.readBytesAsString(database, fieldNameLength);
+                String fieldName = Utils.readBytesAsString(database, fieldNameLength, DatabaseSchema.CHARSET_ENCODING);
                 // Read the associated column length for the above field.
                 short fieldColumnLength = database.readShort();
 

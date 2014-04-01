@@ -1,7 +1,5 @@
 package suncertify.utils;
 
-import suncertify.db.DatabaseSchema;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -19,9 +17,9 @@ public class Utils {
      * @return String extracted.
      * @throws IOException
      */
-    public static String readBytesAsString(RandomAccessFile database, int length) throws IOException {
+    public static String readBytesAsString(RandomAccessFile database, int length, String encoding) throws IOException {
         byte[] input = new byte[length];
         database.read(input);
-        return new String(input, DatabaseSchema.CHARSET_ENCODING).trim();
+        return new String(input, encoding).trim();
     }
 }
