@@ -1,15 +1,16 @@
 package suncertify.db;
 
 import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
 
 /**
  * @author Damien O'Reilly
  */
 public class Data implements DB {
 
-    private String databasePath;
-    private RandomAccessFile database;
+    /**
+     * Class that deals with low level access to the database. This keeps this class simplified.
+     */
+    private static DatabaseIO database;
 
 
     /**
@@ -17,25 +18,19 @@ public class Data implements DB {
      *         Path to the database file on disk.
      */
     public Data(String databasePath) {
-        this.databasePath = databasePath;
-        loadDatabase();
-    }
-
-    /**
-     *
-     */
-    private void loadDatabase() {
         try {
-            database = new RandomAccessFile(databasePath, "rw");
+            database = new DatabaseIO(databasePath);
         } catch (FileNotFoundException e) {
-            //TODO: handle DB not found!
             e.printStackTrace();
         }
     }
 
+
     @Override
     public String[] read(int recNo) throws RecordNotFoundException {
-        return new String[0];
+//        checkRecordId(recNo);
+//        return records.get(recNo);
+        return null;
     }
 
     @Override
@@ -60,6 +55,7 @@ public class Data implements DB {
 
     @Override
     public long lock(int recNo) throws RecordNotFoundException {
+        //checkRecordId(recNo);
         return 0;
     }
 
@@ -67,4 +63,6 @@ public class Data implements DB {
     public void unlock(int recNo, long cookie) throws RecordNotFoundException, SecurityException {
 
     }
+
+
 }

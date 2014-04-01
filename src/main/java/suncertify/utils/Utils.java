@@ -1,4 +1,4 @@
-package suncertify.db.io;
+package suncertify.utils;
 
 import suncertify.db.DatabaseSchema;
 

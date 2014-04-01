@@ -1,8 +1,8 @@
-package suncertify.db.io;
+package suncertify.db;
 
-import suncertify.db.DatabaseSchema;
-import suncertify.db.Field;
+import suncertify.utils.Utils;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -12,11 +12,32 @@ import java.util.List;
 /**
  * @author Damien O'Reilly
  */
-public class DataBaseIO {
+public class DatabaseIO {
+
+    /**
+     * Database physical file.
+     */
     private RandomAccessFile database;
 
-    public DataBaseIO(RandomAccessFile database) {
-        this.database = database;
+    /**
+     * List of records loaded from the database.
+     */
+    private List<String[]> records;
+
+    /**
+     * Constructor that take in database file location and parses the metadata and available records.
+     *
+     * @param databasePath
+     *         Path to the database file.
+     * @throws FileNotFoundException
+     *         Database was not found.
+     */
+    public DatabaseIO(String databasePath) throws FileNotFoundException {
+        this.database = new RandomAccessFile(databasePath, "rw");
+        if (isCompatible()) {
+            parseDatabaseMetaData();
+            records = loadRecords();
+        }
     }
 
     /**
@@ -25,7 +46,7 @@ public class DataBaseIO {
      *
      * @return {@link java.lang.String} array containing records in the database.
      */
-    public List<String[]> loadRecords() {
+    private List<String[]> loadRecords() {
 
         List<String[]> records = null;
 
@@ -43,8 +64,8 @@ public class DataBaseIO {
                     }
                     records.add(record);
                 } else {
-                    /* Move onto the next record offset.
-                    /* Remember, the deleted flag is 2 bytes */
+                    // Move onto the next record offset.
+                    // Remember, the deleted flag is 2 bytes
                     database.seek(database.getFilePointer() + DatabaseSchema.RECORD_SIZE_IN_BYTES - 2);
                 }
             }
@@ -53,7 +74,6 @@ public class DataBaseIO {
         }
 
         return records;
-
     }
 
     /**
@@ -62,7 +82,7 @@ public class DataBaseIO {
      * @return Returns true or false, depending on whether the specified database is compatible with this application
      * or not.
      */
-    public boolean isCompatible() {
+    private boolean isCompatible() {
         int magic = 0;
         try {
             magic = database.readInt();
@@ -73,7 +93,6 @@ public class DataBaseIO {
             e.printStackTrace();
             //TODO: error reading db
         }
-
         return false;
     }
 
@@ -81,20 +100,20 @@ public class DataBaseIO {
      * This method is responsible for parsing the meta-data from the database which includes information such as the
      * number of columns per record and their names and sizes.
      */
-    public void parseDatabaseMetaData() {
+    private void parseDatabaseMetaData() {
         try {
             DatabaseSchema.OFFSET_START_OF_RECORDS = database.readInt();
             DatabaseSchema.NUMBER_OF_FIELDS = database.readShort();
 
             for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
-                /* Read the field name length. */
+                // Read the field name length.
                 short fieldNameLength = database.readShort();
-                /* Read the actual field name. */
+                // Read the actual field name.
                 String fieldName = Utils.readBytesAsString(database, fieldNameLength);
-                /* Read the associated column length for the above field. */
+                // Read the associated column length for the above field.
                 short fieldColumnLength = database.readShort();
 
-                /* Calculate record size. It will be used elsewhere. */
+                // Calculate record size. It will be used elsewhere.
                 DatabaseSchema.RECORD_SIZE_IN_BYTES += fieldColumnLength;
                 DatabaseSchema.fields.add(new Field(fieldName, fieldColumnLength));
             }
@@ -106,16 +125,38 @@ public class DataBaseIO {
 
     }
 
-    //TODO: remove, this is for test only.
-    public static void main(String[] args) {
-        DataBaseIO dataBaseIO;
-        try {
-            dataBaseIO = new DataBaseIO(new RandomAccessFile("db-2x2.db", "rw"));
+    /**
+     * Returns a list of records loaded from the database.
+     *
+     * @return Records.
+     */
+    public List<String[]> getRecords() {
+        return records;
+    }
 
+    /**
+     * Method to determine if Record ID is valid and/or exists.
+     *
+     * @param recNo
+     *         Record ID to verify
+     * @throws RecordNotFoundException
+     */
+    private void checkRecordId(int recNo) throws RecordNotFoundException {
+        try {
+            records.get(recNo);
+        } catch (IndexOutOfBoundsException e) {
+            throw new RecordNotFoundException("Record ID " + recNo + " not found.");
+        }
+    }
+
+    /**
+     * Closes the database.
+     */
+    public void close() {
+        try {
+            database.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
 }
