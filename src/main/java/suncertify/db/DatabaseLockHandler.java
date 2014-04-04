@@ -62,7 +62,7 @@ public class DatabaseLockHandler {
     }
 
     /**
-     * Unlocks a locked record.
+     * Unlocks a locked record. Notifies any waiting threads (if any) on this record that it is now unlocked.
      *
      * @param recNo
      *         Record number to unlock.
@@ -78,7 +78,7 @@ public class DatabaseLockHandler {
         }
 
         // Verify input cookie matches cookie of locked record.
-        if (checkCookie(recNo, cookie)) {
+        if (validateCookie(recNo, cookie)) {
             locks.remove(recNo);
             notifyAll();
         } else {
@@ -95,7 +95,7 @@ public class DatabaseLockHandler {
      *         The cookie to check against.
      * @return If the cookies match or not.
      */
-    private boolean checkCookie(int recNo, long cookie) {
+    public boolean validateCookie(int recNo, long cookie) {
         return locks.get(recNo) == cookie;
     }
 

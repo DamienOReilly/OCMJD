@@ -32,9 +32,7 @@ public class Data implements DB {
 
     @Override
     public String[] read(int recNo) throws RecordNotFoundException {
-//        checkRecordId(recNo);
-//        return records.get(recNo);
-        return null;
+        return database.read(recNo);
     }
 
     @Override
@@ -44,6 +42,7 @@ public class Data implements DB {
 
     @Override
     public void delete(int recNo, long lockCookie) throws RecordNotFoundException, SecurityException {
+        database.delete(recNo, lockCookie);
 
     }
 
@@ -52,8 +51,14 @@ public class Data implements DB {
         return new int[0];
     }
 
+    /**
+     * @param data The record details
+     * @return
+     * @throws DuplicateKeyException
+     */
     @Override
     public int create(String[] data) throws DuplicateKeyException {
+        database.create(data);
         return 0;
     }
 

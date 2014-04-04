@@ -4,6 +4,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
@@ -14,10 +19,18 @@ import static org.junit.Assert.assertThat;
 public class DataTest {
 
     private Data data = null;
+    private static final String ORIGINAL_DATABASE = "db-2x2.db";
+    private static final String COPY_DATABASE = "db-2x2.db-test";
 
     @Before
     public void setUp() {
-        data = new Data("db-2x2.db");
+        try {
+            Files.copy(Paths.get(ORIGINAL_DATABASE), Paths.get(COPY_DATABASE), StandardCopyOption.COPY_ATTRIBUTES,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        data = new Data(COPY_DATABASE);
     }
 
     @Test
@@ -70,15 +83,34 @@ public class DataTest {
             assertThat(cookie1, is(not(0L)));
             data.unlock(0, cookie1);
             long cookie2 = data.lock(0);
-            assertThat(cookie1, is(not(0L)));
-            assertThat(cookie1, not(equalTo(cookie2)));
+            assertThat(cookie2, is(not(0L)));
+            assertThat(cookie2, not(equalTo(cookie1)));
+            //data.unlock(0, cookie2);
         } catch (RecordNotFoundException e) {
             e.printStackTrace();
         }
     }
 
+
+    @Test(expected = SecurityException.class)
+    public void testDeleteWithoutLocking() throws RecordNotFoundException {
+        //data.delete(0, 0);
+    }
+
+    @Test
+    public void testDeleteWithWrongCookie() throws RecordNotFoundException {
+        long cookie1 = data.lock(0);
+        data.delete(0, 0);
+        data.unlock(0, 1234L);
+    }
+
     @After
     public void tearDown() {
         data.close();
+        try {
+            Files.deleteIfExists(Paths.get(COPY_DATABASE));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

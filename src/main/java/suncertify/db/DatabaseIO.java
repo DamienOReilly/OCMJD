@@ -25,12 +25,15 @@ public class DatabaseIO {
     private List<String[]> records;
 
     /**
+     * Singleton Lock Handler for transactional safety.
+     */
+    private static DatabaseLockHandler databaseLockHandler = DatabaseLockHandler.getInstance();
+
+    /**
      * Constructor that take in database file location and parses the metadata and available records.
      *
-     * @param databasePath
-     *         Path to the database file.
-     * @throws FileNotFoundException
-     *         Database was not found.
+     * @param databasePath Path to the database file.
+     * @throws FileNotFoundException Database was not found.
      */
     public DatabaseIO(String databasePath) throws FileNotFoundException {
         this.database = new RandomAccessFile(databasePath, "rw");
@@ -138,17 +141,34 @@ public class DatabaseIO {
     /**
      * Method to determine if Record ID is valid and/or exists.
      *
-     * @param recNo
-     *         Record ID to verify
+     * @param recNo Record ID to verify
      * @throws RecordNotFoundException If the record was not found or is invalid.
      */
     public void checkRecordId(int recNo) throws RecordNotFoundException {
         try {
             records.get(recNo);
+            if (isRecordDeleted(recNo)) {
+                throw new RecordNotFoundException("Record ID " + recNo + " does not exist.");
+            }
         } catch (IndexOutOfBoundsException e) {
             throw new RecordNotFoundException("Record ID " + recNo + " not found.");
         }
     }
+
+    /**
+     * Method checks if a record is 'flagged' deleted. (Uninitialized string array)
+     *
+     * @param recNo Record ID.
+     * @return Returns true if deleted, false if not.
+     */
+    private boolean isRecordDeleted(int recNo) {
+        return records.get(recNo)[0] == null;
+    }
+
+    public synchronized int create(String[] data) {
+        return 0;
+    }
+
 
     /**
      * Closes the database.
@@ -160,4 +180,54 @@ public class DatabaseIO {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Reads a record from the database
+     *
+     * @param recNo Record ID.
+     * @return String array for the specific record.
+     * @throws RecordNotFoundException If the record is not found or record ID is invalid.
+     */
+    public String[] read(int recNo) throws RecordNotFoundException {
+        checkRecordId(recNo);
+        return records.get(recNo);
+    }
+
+    /**
+     * Deletes a record from the database.
+     *
+     * @param recNo      Record ID.
+     * @param lockCookie Cookie that the record was previously locked with.
+     * @throws RecordNotFoundException If the record was not found or record ID is invalid.
+     * @throws SecurityException       If the input cookie does not match cookie of locked record, or if record is not
+     *                                 currentyl locked.
+     */
+    public synchronized void delete(int recNo, long lockCookie) throws RecordNotFoundException, SecurityException {
+        checkRecordId(recNo);
+        try {
+            if (!databaseLockHandler.isLocked(recNo)) {
+                throw new SecurityException("Record " + recNo + " is not locked. Cannot delete.");
+            }
+
+            if (!databaseLockHandler.validateCookie(recNo, lockCookie)) {
+                throw new SecurityException("Wrong lock cookie for record " + recNo + ". Cannot delete.");
+            }
+
+            database.seek(getPosition(recNo));
+            database.writeShort(DatabaseSchema.DELETED_RECORD);
+            // Reset the record in the cache. (Uninitialized String array)
+            records.set(recNo, new String[DatabaseSchema.NUMBER_OF_FIELDS]);
+
+        } catch (IOException e) {
+            //TODO: log
+            e.printStackTrace();
+            throw new RecordNotFoundException("Could not delete record " + recNo + ". " + e.getLocalizedMessage());
+        }
+
+    }
+
+    public int getPosition(int recNo) {
+        return DatabaseSchema.OFFSET_START_OF_RECORDS + (recNo * DatabaseSchema.RECORD_SIZE_IN_BYTES);
+    }
+
 }
