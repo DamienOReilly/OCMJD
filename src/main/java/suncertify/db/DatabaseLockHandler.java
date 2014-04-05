@@ -10,11 +10,6 @@ import java.util.logging.Logger;
 public class DatabaseLockHandler {
 
     /**
-     * Singleton instance for the transactional safety lock manager.
-     */
-    private static final DatabaseLockHandler databaseLockHandler = new DatabaseLockHandler();
-
-    /**
      * Hash Map containing records and their locks.
      */
     private final Map<Integer, Long> locks = new HashMap<>();
@@ -23,16 +18,6 @@ public class DatabaseLockHandler {
      * Logger instance.
      */
     private Logger logger = Logger.getLogger("suncertify.db");
-
-    /**
-     * Private constructor - Singleton pattern.
-     */
-    private DatabaseLockHandler() {
-    }
-
-    public static DatabaseLockHandler getInstance() {
-        return databaseLockHandler;
-    }
 
     /**
      * Locks a record
@@ -62,7 +47,8 @@ public class DatabaseLockHandler {
     }
 
     /**
-     * Unlocks a locked record. Notifies any waiting threads (if any) on this record that it is now unlocked.
+     * Unlocks a locked record. Notifies any waiting threads (if any) on this record that it is now unlocked. If a
+     * record is already deleted, its locked state is cleared. This is a valid scenario.
      *
      * @param recNo
      *         Record number to unlock.
@@ -76,6 +62,9 @@ public class DatabaseLockHandler {
         if (!isLocked(recNo)) {
             throw new SecurityException("Record is not currently locked.");
         }
+
+        // Check if recNo actually exists.
+        //if (!)
 
         // Verify input cookie matches cookie of locked record.
         if (validateCookie(recNo, cookie)) {

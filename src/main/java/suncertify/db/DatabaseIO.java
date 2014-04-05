@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -25,9 +27,14 @@ public class DatabaseIO {
     private List<String[]> records;
 
     /**
-     * Singleton Lock Handler for transactional safety.
+     * Lock Handler for transactional safety.
      */
-    private static DatabaseLockHandler databaseLockHandler = DatabaseLockHandler.getInstance();
+    private DatabaseLockHandler databaseLockHandler;
+
+    /**
+     * Synchronized write access to the physical database file.
+     */
+    private Lock dbWriteLock = new ReentrantLock();
 
     /**
      * Constructor that take in database file location and parses the metadata and available records.
@@ -35,7 +42,8 @@ public class DatabaseIO {
      * @param databasePath Path to the database file.
      * @throws FileNotFoundException Database was not found.
      */
-    public DatabaseIO(String databasePath) throws FileNotFoundException {
+    public DatabaseIO(String databasePath, DatabaseLockHandler databaseLockHandler) throws FileNotFoundException {
+        this.databaseLockHandler = databaseLockHandler;
         this.database = new RandomAccessFile(databasePath, "rw");
         if (isCompatible()) {
             parseDatabaseMetaData();
@@ -58,20 +66,20 @@ public class DatabaseIO {
             records = new ArrayList<>();
 
             while (database.getFilePointer() < database.length()) {
-                short flag = database.readShort();
-                if (flag != DatabaseSchema.DELETED_RECORD) {
-                    String[] record = new String[DatabaseSchema.NUMBER_OF_FIELDS];
+                int flag = database.readUnsignedShort();
+                String[] record = new String[DatabaseSchema.NUMBER_OF_FIELDS];
 
+                if (flag != DatabaseSchema.DELETED_RECORD_FLAG) {
                     for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
                         record[i] = Utils.readBytesAsString(database, DatabaseSchema.fields.get(i).getLength(),
                                 DatabaseSchema.CHARSET_ENCODING);
                     }
-                    records.add(record);
                 } else {
-                    // Move onto the next record offset.
-                    // Remember, the deleted flag is 2 bytes
+                    // Move onto the next record offset. Remember, the deleted flag is 2 bytes
                     database.seek(database.getFilePointer() + DatabaseSchema.RECORD_SIZE_IN_BYTES - 2);
                 }
+                //Add the record to cache. If record was deleted, an empty String array is added as a place-holder.
+                records.add(record);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -87,7 +95,7 @@ public class DatabaseIO {
      * or not.
      */
     private boolean isCompatible() {
-        int magic = 0;
+        int magic;
         try {
             magic = database.readInt();
             if (magic == DatabaseSchema.DATABASE_COMPATIBILITY_MAGIC) {
@@ -144,24 +152,37 @@ public class DatabaseIO {
      * @param recNo Record ID to verify
      * @throws RecordNotFoundException If the record was not found or is invalid.
      */
-    public void checkRecordId(int recNo) throws RecordNotFoundException {
-        try {
-            records.get(recNo);
-            if (isRecordDeleted(recNo)) {
-                throw new RecordNotFoundException("Record ID " + recNo + " does not exist.");
-            }
-        } catch (IndexOutOfBoundsException e) {
+    public void checkRecordIsValid(int recNo) throws RecordNotFoundException {
+        if (!recordIDExists(recNo)) {
             throw new RecordNotFoundException("Record ID " + recNo + " not found.");
+        }
+        if (isRecordDeleted(recNo)) {
+            throw new RecordNotFoundException("Record ID " + recNo + " has been deleted.");
         }
     }
 
     /**
-     * Method checks if a record is 'flagged' deleted. (Uninitialized string array)
+     * Checks if a Record ID exists, regardless if it is flagged as deleted.
+     *
+     * @param recNo Record ID
+     * @return True if exists, otherwise false.
+     */
+    public boolean recordIDExists(int recNo) {
+        try {
+            records.get(recNo);
+        } catch (IndexOutOfBoundsException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Method checks if a record is 'flagged' deleted, as opposed to Record ID not existing.
      *
      * @param recNo Record ID.
      * @return Returns true if deleted, false if not.
      */
-    private boolean isRecordDeleted(int recNo) {
+    public boolean isRecordDeleted(int recNo) {
         return records.get(recNo)[0] == null;
     }
 
@@ -189,7 +210,7 @@ public class DatabaseIO {
      * @throws RecordNotFoundException If the record is not found or record ID is invalid.
      */
     public String[] read(int recNo) throws RecordNotFoundException {
-        checkRecordId(recNo);
+        checkRecordIsValid(recNo);
         return records.get(recNo);
     }
 
@@ -202,19 +223,20 @@ public class DatabaseIO {
      * @throws SecurityException       If the input cookie does not match cookie of locked record, or if record is not
      *                                 currentyl locked.
      */
-    public synchronized void delete(int recNo, long lockCookie) throws RecordNotFoundException, SecurityException {
-        checkRecordId(recNo);
+    public void delete(int recNo, long lockCookie) throws RecordNotFoundException, SecurityException {
+        dbWriteLock.lock();
         try {
+            checkRecordIsValid(recNo);
+
             if (!databaseLockHandler.isLocked(recNo)) {
                 throw new SecurityException("Record " + recNo + " is not locked. Cannot delete.");
             }
-
             if (!databaseLockHandler.validateCookie(recNo, lockCookie)) {
                 throw new SecurityException("Wrong lock cookie for record " + recNo + ". Cannot delete.");
             }
 
             database.seek(getPosition(recNo));
-            database.writeShort(DatabaseSchema.DELETED_RECORD);
+            database.writeShort(DatabaseSchema.DELETED_RECORD_FLAG);
             // Reset the record in the cache. (Uninitialized String array)
             records.set(recNo, new String[DatabaseSchema.NUMBER_OF_FIELDS]);
 
@@ -222,6 +244,8 @@ public class DatabaseIO {
             //TODO: log
             e.printStackTrace();
             throw new RecordNotFoundException("Could not delete record " + recNo + ". " + e.getLocalizedMessage());
+        } finally {
+            dbWriteLock.unlock();
         }
 
     }

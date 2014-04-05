@@ -15,12 +15,15 @@ import static org.junit.Assert.assertEquals;
  */
 public class DatabaseIOTest {
 
-    private static DatabaseIO databaseIO;
+    private DatabaseIO databaseIO;
+    private DatabaseLockHandler databaseLockHandler;
+
 
     @Before
     public void setUp() {
+        databaseLockHandler = new DatabaseLockHandler();
         try {
-            databaseIO = new DatabaseIO("db-2x2.db");
+            databaseIO = new DatabaseIO("db-2x2.db", databaseLockHandler);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

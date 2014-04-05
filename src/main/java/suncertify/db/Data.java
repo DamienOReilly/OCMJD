@@ -13,17 +13,17 @@ public class Data implements DB {
     private static DatabaseIO database;
 
     /**
-     * Singleton Lock Handler for transactional safety.
+     * Lock Handler for transactional safety.
      */
-    private static DatabaseLockHandler databaseLockHandler = DatabaseLockHandler.getInstance();
+    private DatabaseLockHandler databaseLockHandler;
 
     /**
-     * @param databasePath
-     *         Path to the database file on disk.
+     * @param databasePath Path to the database file on disk.
      */
     public Data(String databasePath) {
+        databaseLockHandler = new DatabaseLockHandler();
         try {
-            database = new DatabaseIO(databasePath);
+            database = new DatabaseIO(databasePath, databaseLockHandler);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -36,7 +36,7 @@ public class Data implements DB {
     }
 
     @Override
-    public void update(int recNo, String[] data, long lockCookie) throws RecordNotFoundException, SecurityException {
+    public void update(int recNo, String[] data, long lockCookie) throws RecordNotFoundException {
 
     }
 
@@ -63,30 +63,30 @@ public class Data implements DB {
     }
 
     /**
-     * @param recNo
-     *         The record number of the record to lock
+     * @param recNo The record number of the record to lock
      * @return
      * @throws RecordNotFoundException
      */
     @Override
     public long lock(int recNo) throws RecordNotFoundException {
-        database.checkRecordId(recNo);
+        database.checkRecordIsValid(recNo);
         return databaseLockHandler.lock(recNo);
     }
 
     /**
-     *
-     * @param recNo
-     *         The record number of the record to unlock
-     * @param cookie
-     *         The cookie that the record was originally locked with
+     * @param recNo  The record number of the record to unlock. Note, the record may no longer exist if it was
+     *               deleted post locking
+     * @param cookie The cookie that the record was originally locked with
      * @throws RecordNotFoundException
      * @throws SecurityException
      */
     @Override
     public void unlock(int recNo, long cookie) throws RecordNotFoundException, SecurityException {
-        database.checkRecordId(recNo);
-        databaseLockHandler.unlock(recNo, cookie);
+        if (database.recordIDExists(recNo)) {
+            databaseLockHandler.unlock(recNo, cookie);
+        } else {
+            throw new RecordNotFoundException("Record " + recNo + " does not exist.");
+        }
     }
 
     public void close() {

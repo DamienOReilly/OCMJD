@@ -33,6 +33,10 @@ public class DataTest {
         data = new Data(COPY_DATABASE);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // READ
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
     @Test
     public void readFirstRecordTest() {
         String[] first = {"Dogs With Tools", "Smallville", "Roofing", "7", "$35.00", ""};
@@ -66,42 +70,78 @@ public class DataTest {
         String[] record = data.read(28);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // LOCK
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
     @Test
-    public void testLockRecord() {
-        try {
-            long cookie = data.lock(0);
-            assertThat(cookie, is(not(0L)));
-        } catch (RecordNotFoundException e) {
-            e.printStackTrace();
-        }
+    public void testLockRecord() throws RecordNotFoundException {
+        long cookie = data.lock(0);
+        assertThat(cookie, is(not(0L)));
     }
 
     @Test
-    public void testLockUnlockLockAgainRecord() {
-        try {
-            long cookie1 = data.lock(0);
-            assertThat(cookie1, is(not(0L)));
-            data.unlock(0, cookie1);
-            long cookie2 = data.lock(0);
-            assertThat(cookie2, is(not(0L)));
-            assertThat(cookie2, not(equalTo(cookie1)));
-            //data.unlock(0, cookie2);
-        } catch (RecordNotFoundException e) {
-            e.printStackTrace();
-        }
+    public void testLockUnlockLockAgainRecord() throws RecordNotFoundException, SecurityException {
+        long cookie1 = data.lock(0);
+        assertThat(cookie1, is(not(0L)));
+        data.unlock(0, cookie1);
+        long cookie2 = data.lock(0);
+        assertThat(cookie2, is(not(0L)));
+        assertThat(cookie2, not(equalTo(cookie1)));
     }
+
+    @Test(expected = SecurityException.class)
+    public void testUnlockNotLocked() throws SecurityException, RecordNotFoundException {
+        data.unlock(0, 1234L);
+    }
+
+    @Test(expected = RecordNotFoundException.class)
+    public void testLockRecordNotFound() throws SecurityException, RecordNotFoundException {
+        data.unlock(7000, 1234L);
+
+    }
+
+    @Test(expected = RecordNotFoundException.class)
+    public void testUnLockRecordNotFound() throws SecurityException, RecordNotFoundException {
+        data.unlock(7000, 1234L);
+
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // DELETE
+    /////////////////////////////////////////////////////////////////////////////////////////////
 
 
     @Test(expected = SecurityException.class)
-    public void testDeleteWithoutLocking() throws RecordNotFoundException {
-        //data.delete(0, 0);
+    public void testDeleteNotLocked() throws RecordNotFoundException, SecurityException {
+        data.delete(0, 0);
     }
 
-    @Test
-    public void testDeleteWithWrongCookie() throws RecordNotFoundException {
-        long cookie1 = data.lock(0);
+    @Test(expected = SecurityException.class)
+    public void testDeleteWithWrongCookie() throws RecordNotFoundException, SecurityException {
+        long cookie = data.lock(0);
         data.delete(0, 0);
         data.unlock(0, 1234L);
+    }
+
+    @Test(expected = RecordNotFoundException.class)
+    public void deleteTest1() throws RecordNotFoundException, SecurityException {
+        long cookie = data.lock(0);
+        data.delete(0, cookie);
+        data.unlock(0, cookie);
+        String[] record = data.read(0);
+    }
+
+    @Test(expected = RecordNotFoundException.class)
+    public void deleteTest2() throws RecordNotFoundException, SecurityException {
+        long cookie = data.lock(5);
+        data.delete(5, cookie);
+        data.unlock(5, cookie);
+
+        data.close();
+        data = new Data(COPY_DATABASE);
+
+        String[] record = data.read(5);
     }
 
     @After
