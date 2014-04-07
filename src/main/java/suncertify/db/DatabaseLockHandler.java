@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
+ * This class provides a locking mechanism in order to ensure transactional safety per record in the database.
+ *
  * @author Damien O'Reilly
  */
 public class DatabaseLockHandler {
@@ -22,8 +24,7 @@ public class DatabaseLockHandler {
     /**
      * Locks a record
      *
-     * @param recNo
-     *         The record to attempt to lock.
+     * @param recNo The record to attempt to lock.
      * @return A unique cookie that must be used when further interacting with this record.
      */
     public synchronized long lock(int recNo) throws RecordNotFoundException {
@@ -50,12 +51,9 @@ public class DatabaseLockHandler {
      * Unlocks a locked record. Notifies any waiting threads (if any) on this record that it is now unlocked. If a
      * record is already deleted, its locked state is cleared. This is a valid scenario.
      *
-     * @param recNo
-     *         Record number to unlock.
-     * @param cookie
-     *         Cookie that the record was previously locked with.
-     * @throws SecurityException
-     *         Incorrect cookie or record is not currently locked.
+     * @param recNo  Record number to unlock.
+     * @param cookie Cookie that the record was previously locked with.
+     * @throws SecurityException Incorrect cookie or record is not currently locked.
      */
     public synchronized void unlock(int recNo, long cookie) throws SecurityException {
         // Check record is locked first.
@@ -78,10 +76,8 @@ public class DatabaseLockHandler {
     /**
      * Checks if the specified cookie matches that of the locked record.
      *
-     * @param recNo
-     *         The record number to check against.
-     * @param cookie
-     *         The cookie to check against.
+     * @param recNo  The record number to check against.
+     * @param cookie The cookie to check against.
      * @return If the cookies match or not.
      */
     public boolean validateCookie(int recNo, long cookie) {
@@ -91,8 +87,7 @@ public class DatabaseLockHandler {
     /**
      * Checks if a particular record is locked.
      *
-     * @param recNo
-     *         Record number to check if locked.
+     * @param recNo Record number to check if locked.
      * @return True if locked.
      */
     public boolean isLocked(int recNo) {

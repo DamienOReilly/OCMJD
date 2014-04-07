@@ -6,12 +6,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
+ * This class provides low level functions for interacting with the database. This class is a worker class for
+ * {@link suncertify.db.Data}. It should be possible to modify this class without effecting end user perspective.
  * @author Damien O'Reilly
  */
 public class DatabaseIO {
@@ -76,7 +79,8 @@ public class DatabaseIO {
                     }
                 } else {
                     // Move onto the next record offset. Remember, the deleted flag is 2 bytes
-                    database.seek(database.getFilePointer() + DatabaseSchema.RECORD_SIZE_IN_BYTES - 2);
+                    database.seek(database.getFilePointer() + DatabaseSchema.RECORD_SIZE_IN_BYTES -
+                            DatabaseSchema.DELETE_RECORD_FLAG_SIZE_IN_BYTES);
                 }
                 //Add the record to cache. If record was deleted, an empty String array is added as a place-holder.
                 records.add(record);
@@ -140,7 +144,7 @@ public class DatabaseIO {
     /**
      * Returns a list of records loaded from the database.
      *
-     * @return Records.
+     * @return All records as a {@link java.util.List} of type {@link String}.
      */
     public List<String[]> getRecords() {
         return records;
@@ -177,17 +181,25 @@ public class DatabaseIO {
     }
 
     /**
-     * Method checks if a record is 'flagged' deleted, as opposed to Record ID not existing.
+     * Validates data submitted to create a new record.
      *
-     * @param recNo Record ID.
-     * @return Returns true if deleted, false if not.
+     * @param data {@link String} array containing elements for new record.
+     * @throws DuplicateKeyException If a record containing submitted name and address already exists.
      */
-    public boolean isRecordDeleted(int recNo) {
-        return records.get(recNo)[0] == null;
-    }
+    private void validateNewRecord(String[] data) throws DuplicateKeyException {
+        if ((data == null) || (data[0] == null) || (data[1] == null) || data[0].equals("") || data[1].equals("")) {
+            throw new IllegalArgumentException("Invalid record. A record must contain at least a name and address.");
+        }
 
-    public synchronized int create(String[] data) {
-        return 0;
+        // Check is record already exists. Based on name and address.
+        for (int i = 0; i < records.size(); i++) {
+            if (!isRecordDeleted(i)) {
+                String[] record = records.get(i);
+                if (data[0].equalsIgnoreCase(record[0]) && data[1].equalsIgnoreCase(record[1])) {
+                    throw new DuplicateKeyException("A record with that name and address already exists.");
+                }
+            }
+        }
     }
 
 
@@ -215,13 +227,94 @@ public class DatabaseIO {
     }
 
     /**
+     * Method checks if a record is 'flagged' deleted, as opposed to Record ID not existing.
+     *
+     * @param recNo Record ID.
+     * @return Returns true if deleted, false if not.
+     */
+    public boolean isRecordDeleted(int recNo) {
+        return records.get(recNo)[0] == null;
+    }
+
+    /**
+     * Creates a new record. Will use slot of a previously deleted record if one exists.
+     *
+     * @param data new record data.
+     * @return Record ID for new record.
+     * @throws DuplicateKeyException If an entry with name name and address already exists.
+     */
+    public int create(String[] data) throws DuplicateKeyException {
+        try {
+            dbWriteLock.lock();
+            validateNewRecord(data);
+            long position = getOffsetToCreate();
+            if (position == 0) {
+                throw new RuntimeException("Cannot determine offset to insert new record.");
+            }
+            write(data, position);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            dbWriteLock.unlock();
+        }
+
+        return 0;
+    }
+
+    /**
+     * Writes data to the database file.
+     *
+     * @param data     The record to write.
+     * @param position Position in the database file to write the record.
+     * @throws IOException Problem writing to the database.
+     */
+    private void write(String[] data, long position) throws IOException {
+        database.seek(position);
+        database.writeShort(DatabaseSchema.VALID_RECORD_FLAG);
+        for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
+            byte[] field = Arrays.copyOf(data[i].getBytes(DatabaseSchema.CHARSET_ENCODING),
+                    DatabaseSchema.fields.get(i).getLength());
+            Arrays.fill(field, data[i].length(), field.length, DatabaseSchema.FIELD_PADDING);
+            database.write(field);
+        }
+
+    }
+
+    /**
+     * Method to determine where to insert a new record. Be it a previously deleted record or insert a new row at
+     * end of database.
+     *
+     * @return Offset to write to.
+     * @throws IOException if there was a problem writing to the database.
+     */
+    private long getOffsetToCreate() throws IOException {
+        long currentPosition = 0;
+        database.seek(DatabaseSchema.OFFSET_START_OF_RECORDS);
+        while (database.getFilePointer() < database.length()) {
+            currentPosition = database.getFilePointer();
+            int flag = database.readUnsignedShort();
+
+            if (flag == DatabaseSchema.DELETED_RECORD_FLAG) {
+                return currentPosition;
+            }
+
+            // Move onto the next record offset. Remember, the deleted flag is 2 bytes
+            database.seek(database.getFilePointer() + DatabaseSchema.RECORD_SIZE_IN_BYTES -
+                    DatabaseSchema.DELETE_RECORD_FLAG_SIZE_IN_BYTES);
+        }
+
+        return database.getFilePointer();
+    }
+
+    /**
      * Deletes a record from the database.
      *
      * @param recNo      Record ID.
      * @param lockCookie Cookie that the record was previously locked with.
      * @throws RecordNotFoundException If the record was not found or record ID is invalid.
      * @throws SecurityException       If the input cookie does not match cookie of locked record, or if record is not
-     *                                 currentyl locked.
+     *                                 currently locked.
      */
     public void delete(int recNo, long lockCookie) throws RecordNotFoundException, SecurityException {
         dbWriteLock.lock();
@@ -235,9 +328,9 @@ public class DatabaseIO {
                 throw new SecurityException("Wrong lock cookie for record " + recNo + ". Cannot delete.");
             }
 
-            database.seek(getPosition(recNo));
+            database.seek(getRecordStartPosition(recNo));
             database.writeShort(DatabaseSchema.DELETED_RECORD_FLAG);
-            // Reset the record in the cache. (Uninitialized String array)
+            // Reset the record in the cache. (Empty String array)
             records.set(recNo, new String[DatabaseSchema.NUMBER_OF_FIELDS]);
 
         } catch (IOException e) {
@@ -250,7 +343,13 @@ public class DatabaseIO {
 
     }
 
-    public int getPosition(int recNo) {
+    /**
+     * Gets a record's offset in the database.
+     *
+     * @param recNo Record ID.
+     * @return Offset for given Record ID.
+     */
+    private int getRecordStartPosition(int recNo) {
         return DatabaseSchema.OFFSET_START_OF_RECORDS + (recNo * DatabaseSchema.RECORD_SIZE_IN_BYTES);
     }
 

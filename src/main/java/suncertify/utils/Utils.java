@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
+ * Utility class to perform common operations to the project.
+ *
  * @author Damien O'Reilly
  */
 public class Utils {
     /**
      * Reads a string from bytes accessed via {@link java.io.RandomAccessFile}
      *
-     * @param database
-     *         Database
-     * @param length
-     *         Length of String to read
+     * @param database Database
+     * @param length   Length of String to read
      * @return String extracted.
      * @throws IOException
      */

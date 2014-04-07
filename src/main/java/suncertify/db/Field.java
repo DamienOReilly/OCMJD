@@ -1,6 +1,8 @@
 package suncertify.db;
 
 /**
+ * This class acts as a POJO which holds record column specific details.
+ *
  * @author Damien O'Reilly
  */
 public class Field {
@@ -14,7 +16,7 @@ public class Field {
         }
 
         if (length == null || length < 1) {
-            throw new IllegalArgumentException("Field length should be greater than 0");
+            throw new IllegalArgumentException("Field length should be greater than 0.");
         }
 
         this.name = name;

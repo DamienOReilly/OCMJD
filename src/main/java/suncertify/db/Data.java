@@ -3,6 +3,9 @@ package suncertify.db;
 import java.io.FileNotFoundException;
 
 /**
+ * This class implements {@link suncertify.db.DB} and provides methods to read, update and delete records in the
+ * database.
+ *
  * @author Damien O'Reilly
  */
 public class Data implements DB {
@@ -18,6 +21,7 @@ public class Data implements DB {
     private DatabaseLockHandler databaseLockHandler;
 
     /**
+     * Constructor that takes in a tring location to the database file on disk.
      * @param databasePath Path to the database file on disk.
      */
     public Data(String databasePath) {
@@ -29,43 +33,51 @@ public class Data implements DB {
         }
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String[] read(int recNo) throws RecordNotFoundException {
         return database.read(recNo);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void update(int recNo, String[] data, long lockCookie) throws RecordNotFoundException {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(int recNo, long lockCookie) throws RecordNotFoundException, SecurityException {
         database.delete(recNo, lockCookie);
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int[] find(String[] criteria) {
         return new int[0];
     }
 
+
     /**
-     * @param data The record details
-     * @return
-     * @throws DuplicateKeyException
+     * {@inheritDoc}
      */
     @Override
     public int create(String[] data) throws DuplicateKeyException {
-        database.create(data);
-        return 0;
+        return database.create(data);
+
     }
 
     /**
-     * @param recNo The record number of the record to lock
-     * @return
-     * @throws RecordNotFoundException
+     * {@inheritDoc}
      */
     @Override
     public long lock(int recNo) throws RecordNotFoundException {
@@ -74,11 +86,7 @@ public class Data implements DB {
     }
 
     /**
-     * @param recNo  The record number of the record to unlock. Note, the record may no longer exist if it was
-     *               deleted post locking
-     * @param cookie The cookie that the record was originally locked with
-     * @throws RecordNotFoundException
-     * @throws SecurityException
+     * {@inheritDoc}
      */
     @Override
     public void unlock(int recNo, long cookie) throws RecordNotFoundException, SecurityException {
@@ -89,6 +97,9 @@ public class Data implements DB {
         }
     }
 
+    /**
+     * Close the file handler to the database.
+     */
     public void close() {
         database.close();
     }

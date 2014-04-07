@@ -140,9 +140,23 @@ public class DataTest {
 
         data.close();
         data = new Data(COPY_DATABASE);
-
         String[] record = data.read(5);
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // CREATE
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    @Test
+    public void createRecord() throws DuplicateKeyException, RecordNotFoundException {
+        String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        data.create(record);
+        String[] newRecord = data.read(29);
+        System.out.println(newRecord);
+
+    }
+
 
     @After
     public void tearDown() {
