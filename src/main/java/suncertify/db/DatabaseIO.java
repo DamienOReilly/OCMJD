@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * This class provides low level functions for interacting with the database. This class is a worker class for
  * {@link suncertify.db.Data}. It should be possible to modify this class without effecting end user perspective.
+ *
  * @author Damien O'Reilly
  */
 public class DatabaseIO {
@@ -202,7 +203,6 @@ public class DatabaseIO {
         }
     }
 
-
     /**
      * Closes the database.
      */
@@ -247,11 +247,12 @@ public class DatabaseIO {
         try {
             dbWriteLock.lock();
             validateNewRecord(data);
-            long position = getOffsetToCreate();
+            long position = getOffsetForNewRecord();
             if (position == 0) {
                 throw new RuntimeException("Cannot determine offset to insert new record.");
             }
-            write(data, position);
+
+            return write(data, position);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -259,7 +260,7 @@ public class DatabaseIO {
             dbWriteLock.unlock();
         }
 
-        return 0;
+        return Integer.MIN_VALUE;
     }
 
     /**
@@ -269,9 +270,10 @@ public class DatabaseIO {
      * @param position Position in the database file to write the record.
      * @throws IOException Problem writing to the database.
      */
-    private void write(String[] data, long position) throws IOException {
+    private int write(String[] data, long position) throws IOException {
         database.seek(position);
         database.writeShort(DatabaseSchema.VALID_RECORD_FLAG);
+
         for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
             byte[] field = Arrays.copyOf(data[i].getBytes(DatabaseSchema.CHARSET_ENCODING),
                     DatabaseSchema.fields.get(i).getLength());
@@ -279,23 +281,42 @@ public class DatabaseIO {
             database.write(field);
         }
 
+        // Check if existing entry in cache is to be updated, or new entry created.
+        int recId = getRecordIdFromOffset(position);
+        if (records.size() > recId) {
+            records.set(recId, data);
+            return recId;
+        } else {
+            records.add(data);
+            return recId;
+        }
+    }
+
+    private int getRecordIdFromOffset(long position) {
+        return (int) ((position - DatabaseSchema.OFFSET_START_OF_RECORDS)
+                / DatabaseSchema.RECORD_SIZE_IN_BYTES);
     }
 
     /**
      * Method to determine where to insert a new record. Be it a previously deleted record or insert a new row at
      * end of database.
+     * <p/>
+     * This method will check if record is flagged as deleted and is not currently locked.
+     * It is possible for a record to be flagged as deleted while its record id can still remain locked. This can
+     * happen if a client locks a record, deletes it, but hasn't called unlock() yet.
      *
      * @return Offset to write to.
      * @throws IOException if there was a problem writing to the database.
      */
-    private long getOffsetToCreate() throws IOException {
-        long currentPosition = 0;
+    private long getOffsetForNewRecord() throws IOException {
+        long currentPosition;
         database.seek(DatabaseSchema.OFFSET_START_OF_RECORDS);
         while (database.getFilePointer() < database.length()) {
             currentPosition = database.getFilePointer();
             int flag = database.readUnsignedShort();
 
-            if (flag == DatabaseSchema.DELETED_RECORD_FLAG) {
+            if (flag == DatabaseSchema.DELETED_RECORD_FLAG &&
+                    !databaseLockHandler.isRecordLocked(getRecordIdFromOffset(currentPosition))) {
                 return currentPosition;
             }
 
@@ -321,10 +342,10 @@ public class DatabaseIO {
         try {
             checkRecordIsValid(recNo);
 
-            if (!databaseLockHandler.isLocked(recNo)) {
+            if (!databaseLockHandler.isRecordLocked(recNo)) {
                 throw new SecurityException("Record " + recNo + " is not locked. Cannot delete.");
             }
-            if (!databaseLockHandler.validateCookie(recNo, lockCookie)) {
+            if (!databaseLockHandler.isCookieValid(recNo, lockCookie)) {
                 throw new SecurityException("Wrong lock cookie for record " + recNo + ". Cannot delete.");
             }
 

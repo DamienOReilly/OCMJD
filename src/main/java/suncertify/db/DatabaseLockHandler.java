@@ -2,6 +2,9 @@ package suncertify.db;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 /**
@@ -22,29 +25,37 @@ public class DatabaseLockHandler {
     private Logger logger = Logger.getLogger("suncertify.db");
 
     /**
+     * Provides synchronized access to the lock cookie map.
+     */
+    private static Lock lock = new ReentrantLock();
+
+    /**
+     * Provides a wait and notify thread mechanism.
+     */
+    private static Condition lockCondition = lock.newCondition();
+
+    /**
      * Locks a record
      *
      * @param recNo The record to attempt to lock.
      * @return A unique cookie that must be used when further interacting with this record.
      */
-    public synchronized long lock(int recNo) throws RecordNotFoundException {
-        long lockCookie = System.nanoTime();
-
-        while (isLocked(recNo)) {
-            try {
+    public long lock(int recNo) throws RecordNotFoundException {
+        lock.lock();
+        try {
+            while (isLocked(recNo)) {
                 /**
                  * If the specified record is already locked by a different client, the current thread gives up the
                  * CPU and consumes no CPU cycles until the record is unlocked.
                  */
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace(); //TODO: handle exception.
-                throw new RecordNotFoundException("Problem when locking record: " + recNo + ". " + e.getMessage());
+                lockCondition.awaitUninterruptibly();
             }
+            long lockCookie = System.nanoTime();
+            locks.put(recNo, lockCookie);
+            return lockCookie;
+        } finally {
+            lock.unlock();
         }
-
-        locks.put(recNo, lockCookie);
-        return lockCookie;
     }
 
     /**
@@ -55,21 +66,23 @@ public class DatabaseLockHandler {
      * @param cookie Cookie that the record was previously locked with.
      * @throws SecurityException Incorrect cookie or record is not currently locked.
      */
-    public synchronized void unlock(int recNo, long cookie) throws SecurityException {
-        // Check record is locked first.
-        if (!isLocked(recNo)) {
-            throw new SecurityException("Record is not currently locked.");
-        }
+    public void unlock(int recNo, long cookie) throws SecurityException {
+        lock.lock();
+        try {
+            // Check record is locked first.
+            if (!isLocked(recNo)) {
+                throw new SecurityException("Record is not currently locked.");
+            }
 
-        // Check if recNo actually exists.
-        //if (!)
-
-        // Verify input cookie matches cookie of locked record.
-        if (validateCookie(recNo, cookie)) {
-            locks.remove(recNo);
-            notifyAll();
-        } else {
-            throw new SecurityException("Provided cookie does not match cookie of locked record.");
+            // Verify input cookie matches cookie of locked record.
+            if (validateCookie(recNo, cookie)) {
+                locks.remove(recNo);
+                lockCondition.signalAll();
+            } else {
+                throw new SecurityException("Provided cookie does not match cookie of locked record.");
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -80,8 +93,24 @@ public class DatabaseLockHandler {
      * @param cookie The cookie to check against.
      * @return If the cookies match or not.
      */
-    public boolean validateCookie(int recNo, long cookie) {
+    private boolean validateCookie(int recNo, long cookie) {
         return locks.get(recNo) == cookie;
+    }
+
+    /**
+     * A thread-safe method to check if a given cookie is valid for a given record.
+     *
+     * @param recNo  The record number to check against.
+     * @param cookie If the cookies match or not.
+     * @return
+     */
+    public boolean isCookieValid(int recNo, long cookie) {
+        lock.lock();
+        try {
+            return validateCookie(recNo, cookie);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -90,7 +119,22 @@ public class DatabaseLockHandler {
      * @param recNo Record number to check if locked.
      * @return True if locked.
      */
-    public boolean isLocked(int recNo) {
+    private boolean isLocked(int recNo) {
         return locks.containsKey(recNo);
+    }
+
+    /**
+     * A thread-safe method to check if a particular record is locked.
+     *
+     * @param recNo Record number to check if locked.
+     * @return True if locked.
+     */
+    public boolean isRecordLocked(int recNo) {
+        lock.lock();
+        try {
+            return isLocked(recNo);
+        } finally {
+            lock.unlock();
+        }
     }
 }

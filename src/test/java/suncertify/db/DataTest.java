@@ -10,8 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 /**
  * @author Damien O'Reilly
@@ -153,8 +152,30 @@ public class DataTest {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         data.create(record);
         String[] newRecord = data.read(29);
-        System.out.println(newRecord);
+        assertArrayEquals(record, newRecord);
+    }
 
+    @Test
+    public void createRecordRelpacingDeleted() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+        String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        long cookie = data.lock(5);
+        data.delete(5, cookie);
+        data.unlock(5, cookie);
+        int newRecId = data.create(record);
+        String[] newRecord = data.read(5);
+        assertEquals(5, newRecId);
+        assertArrayEquals(record, newRecord);
+    }
+
+    @Test
+    public void createRecordRelpacingLockedDeleted() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+        String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        long cookie = data.lock(5);
+        data.delete(5, cookie);
+        int newRecId = data.create(record);
+        String[] newRecord = data.read(5);
+        assertEquals(5, newRecId);
+        assertArrayEquals(record, newRecord);
     }
 
 
