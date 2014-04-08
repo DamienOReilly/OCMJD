@@ -87,6 +87,7 @@ public class DatabaseIO {
                 records.add(record);
             }
         } catch (IOException e) {
+            //TODO: log
             e.printStackTrace();
         }
 
@@ -107,8 +108,8 @@ public class DatabaseIO {
                 return true;
             }
         } catch (IOException e) {
+            //TODO: log
             e.printStackTrace();
-            //TODO: error reading db
         }
         return false;
     }
@@ -136,8 +137,8 @@ public class DatabaseIO {
             }
 
         } catch (IOException e) {
+            //TODO: log
             e.printStackTrace();
-            //TODO: error reading db
         }
 
     }
@@ -210,20 +211,9 @@ public class DatabaseIO {
         try {
             database.close();
         } catch (IOException e) {
+            //TODO: log
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Reads a record from the database
-     *
-     * @param recNo Record ID.
-     * @return String array for the specific record.
-     * @throws RecordNotFoundException If the record is not found or record ID is invalid.
-     */
-    public String[] read(int recNo) throws RecordNotFoundException {
-        checkRecordIsValid(recNo);
-        return records.get(recNo);
     }
 
     /**
@@ -237,61 +227,38 @@ public class DatabaseIO {
     }
 
     /**
-     * Creates a new record. Will use slot of a previously deleted record if one exists.
+     * Checks a record's lock status against the given cookie.
      *
-     * @param data new record data.
-     * @return Record ID for new record.
-     * @throws DuplicateKeyException If an entry with name name and address already exists.
+     * @param recNo      Record ID.
+     * @param lockCookie Lock cookie.
+     * @throws SecurityException If the record isn't locked or is locked with a different cookie than the supplied
+     *                           cookie.
      */
-    public int create(String[] data) throws DuplicateKeyException {
-        try {
-            dbWriteLock.lock();
-            validateNewRecord(data);
-            long position = getOffsetForNewRecord();
-            if (position == 0) {
-                throw new RuntimeException("Cannot determine offset to insert new record.");
-            }
-
-            return write(data, position);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            dbWriteLock.unlock();
+    private void verifyLockStatus(int recNo, long lockCookie) throws SecurityException {
+        if (!databaseLockHandler.isRecordLocked(recNo)) {
+            throw new SecurityException("Record " + recNo + " is not locked. Cannot delete.");
         }
-
-        return Integer.MIN_VALUE;
+        if (!databaseLockHandler.isCookieValid(recNo, lockCookie)) {
+            throw new SecurityException("Wrong lock cookie for record " + recNo + ". Cannot delete.");
+        }
     }
 
     /**
-     * Writes data to the database file.
+     * Gets a record's offset in the database.
      *
-     * @param data     The record to write.
-     * @param position Position in the database file to write the record.
-     * @throws IOException Problem writing to the database.
+     * @param recNo Record ID.
+     * @return Offset for given Record ID.
      */
-    private int write(String[] data, long position) throws IOException {
-        database.seek(position);
-        database.writeShort(DatabaseSchema.VALID_RECORD_FLAG);
-
-        for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
-            byte[] field = Arrays.copyOf(data[i].getBytes(DatabaseSchema.CHARSET_ENCODING),
-                    DatabaseSchema.fields.get(i).getLength());
-            Arrays.fill(field, data[i].length(), field.length, DatabaseSchema.FIELD_PADDING);
-            database.write(field);
-        }
-
-        // Check if existing entry in cache is to be updated, or new entry created.
-        int recId = getRecordIdFromOffset(position);
-        if (records.size() > recId) {
-            records.set(recId, data);
-            return recId;
-        } else {
-            records.add(data);
-            return recId;
-        }
+    private int getRecordOffset(int recNo) {
+        return DatabaseSchema.OFFSET_START_OF_RECORDS + (recNo * DatabaseSchema.RECORD_SIZE_IN_BYTES);
     }
 
+    /**
+     * Gets a Record ID from a given record offset in the database.
+     *
+     * @param position Offset of start of record in the database.
+     * @return Record ID.
+     */
     private int getRecordIdFromOffset(long position) {
         return (int) ((position - DatabaseSchema.OFFSET_START_OF_RECORDS)
                 / DatabaseSchema.RECORD_SIZE_IN_BYTES);
@@ -329,11 +296,80 @@ public class DatabaseIO {
     }
 
     /**
+     * Writes data to the database file.
+     *
+     * @param data     The record to write.
+     * @param position Position in the database file to write the record.
+     * @throws IOException Problem writing to the database.
+     */
+    private void write(String[] data, long position) throws IOException {
+        database.seek(position);
+        database.writeShort(DatabaseSchema.VALID_RECORD_FLAG);
+
+        for (int i = 0; i < DatabaseSchema.NUMBER_OF_FIELDS; i++) {
+            byte[] field = Arrays.copyOf(data[i].getBytes(DatabaseSchema.CHARSET_ENCODING),
+                    DatabaseSchema.fields.get(i).getLength());
+            Arrays.fill(field, data[i].length(), field.length, DatabaseSchema.FIELD_PADDING);
+            database.write(field);
+        }
+    }
+
+    /**
+     * Reads a record from the database
+     *
+     * @param recNo Record ID of the record to read.
+     * @return String array for the specific record.
+     * @throws RecordNotFoundException If the Record ID does not exist or is flagged as deleted.
+     */
+    public String[] read(int recNo) throws RecordNotFoundException {
+        checkRecordIsValid(recNo);
+        return records.get(recNo);
+    }
+
+    /**
+     * Creates a new record. Will use slot of a previously deleted record if one exists.
+     *
+     * @param data New record data.
+     * @return Record ID assigned to the newly created record.
+     * @throws DuplicateKeyException If an entry with name name and address already exists.
+     */
+    public int create(String[] data) throws DuplicateKeyException {
+        try {
+            dbWriteLock.lock();
+            validateNewRecord(data);
+            long position = getOffsetForNewRecord();
+            if (position == 0) {
+                //TODO: Cannot determine offset to insert new record.
+            }
+
+            write(data, position);
+
+            // Check if existing entry in cache is to be updated, or new entry created.
+            int recId = getRecordIdFromOffset(position);
+            if (records.size() > recId) {
+                records.set(recId, data);
+                return recId;
+            } else {
+                records.add(data);
+                return recId;
+            }
+
+        } catch (IOException e) {
+            //TODO: log
+            e.printStackTrace();
+        } finally {
+            dbWriteLock.unlock();
+        }
+
+        return Integer.MIN_VALUE;
+    }
+
+    /**
      * Deletes a record from the database.
      *
-     * @param recNo      Record ID.
+     * @param recNo      Record ID of the record to delete.
      * @param lockCookie Cookie that the record was previously locked with.
-     * @throws RecordNotFoundException If the record was not found or record ID is invalid.
+     * @throws RecordNotFoundException If the Record ID does not exist or is flagged as deleted.
      * @throws SecurityException       If the input cookie does not match cookie of locked record, or if record is not
      *                                 currently locked.
      */
@@ -341,15 +377,9 @@ public class DatabaseIO {
         dbWriteLock.lock();
         try {
             checkRecordIsValid(recNo);
+            verifyLockStatus(recNo, lockCookie);
 
-            if (!databaseLockHandler.isRecordLocked(recNo)) {
-                throw new SecurityException("Record " + recNo + " is not locked. Cannot delete.");
-            }
-            if (!databaseLockHandler.isCookieValid(recNo, lockCookie)) {
-                throw new SecurityException("Wrong lock cookie for record " + recNo + ". Cannot delete.");
-            }
-
-            database.seek(getRecordStartPosition(recNo));
+            database.seek(getRecordOffset(recNo));
             database.writeShort(DatabaseSchema.DELETED_RECORD_FLAG);
             // Reset the record in the cache. (Empty String array)
             records.set(recNo, new String[DatabaseSchema.NUMBER_OF_FIELDS]);
@@ -365,13 +395,29 @@ public class DatabaseIO {
     }
 
     /**
-     * Gets a record's offset in the database.
+     * Updates a record in the database with the supplied record information.
      *
-     * @param recNo Record ID.
-     * @return Offset for given Record ID.
+     * @param recNo      The Record ID of the record to update.
+     * @param data       The record data to update the record with.
+     * @param lockCookie Cookie that the record was previously locked with.
+     * @throws RecordNotFoundException If the Record ID does not exist or is flagged as deleted.
+     * @throws SecurityException       If the supplied cookie does not match the cookie this record is locked with or if
+     *                                 the record is not locked in the first place.
      */
-    private int getRecordStartPosition(int recNo) {
-        return DatabaseSchema.OFFSET_START_OF_RECORDS + (recNo * DatabaseSchema.RECORD_SIZE_IN_BYTES);
-    }
+    public void update(int recNo, String[] data, long lockCookie) throws RecordNotFoundException, SecurityException {
+        dbWriteLock.lock();
+        try {
+            checkRecordIsValid(recNo);
+            verifyLockStatus(recNo, lockCookie);
+            int position = getRecordOffset(recNo);
+            write(data, position);
+            records.set(recNo, data);
+        } catch (IOException e) {
+            //TODO: log
+            e.printStackTrace();
+        } finally {
+            dbWriteLock.unlock();
+        }
 
+    }
 }

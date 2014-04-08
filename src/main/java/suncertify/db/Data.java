@@ -11,9 +11,10 @@ import java.io.FileNotFoundException;
 public class Data implements DB {
 
     /**
-     * Class that deals with low level access to the database. This keeps this class simplified.
+     * Class that deals with low level access to the database. This will keep this class simplified by delegating all
+     * work to the DatbseIO class.
      */
-    private static DatabaseIO database;
+    private DatabaseIO database;
 
     /**
      * Lock Handler for transactional safety.
@@ -45,7 +46,8 @@ public class Data implements DB {
      * {@inheritDoc}
      */
     @Override
-    public void update(int recNo, String[] data, long lockCookie) throws RecordNotFoundException {
+    public void update(int recNo, String[] data, long lockCookie) throws RecordNotFoundException, SecurityException {
+        database.update(recNo, data, lockCookie);
 
     }
 

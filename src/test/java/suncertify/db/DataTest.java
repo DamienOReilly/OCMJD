@@ -60,13 +60,12 @@ public class DataTest {
 
     @Test(expected = RecordNotFoundException.class)
     public void readInvalidRecordTest() throws RecordNotFoundException {
-        String[] record = data.read(-675);
+        data.read(-675);
     }
 
     @Test(expected = RecordNotFoundException.class)
     public void readNonExistingRecordTest() throws RecordNotFoundException {
-
-        String[] record = data.read(28);
+        data.read(28);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +117,7 @@ public class DataTest {
 
     @Test(expected = SecurityException.class)
     public void testDeleteWithWrongCookie() throws RecordNotFoundException, SecurityException {
-        long cookie = data.lock(0);
+        data.lock(0);
         data.delete(0, 0);
         data.unlock(0, 1234L);
     }
@@ -128,7 +127,7 @@ public class DataTest {
         long cookie = data.lock(0);
         data.delete(0, cookie);
         data.unlock(0, cookie);
-        String[] record = data.read(0);
+        data.read(0);
     }
 
     @Test(expected = RecordNotFoundException.class)
@@ -137,9 +136,10 @@ public class DataTest {
         data.delete(5, cookie);
         data.unlock(5, cookie);
 
+        // re-initialize
         data.close();
         data = new Data(COPY_DATABASE);
-        String[] record = data.read(5);
+        data.read(5);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,8 +151,16 @@ public class DataTest {
     public void createRecord() throws DuplicateKeyException, RecordNotFoundException {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         data.create(record);
-        String[] newRecord = data.read(29);
+        String[] newRecord = data.read(28);
         assertArrayEquals(record, newRecord);
+    }
+
+
+    @Test(expected = DuplicateKeyException.class)
+    public void createDuplicateRecord() throws DuplicateKeyException, RecordNotFoundException {
+        String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        data.create(record);
+        data.create(record);
     }
 
     @Test
@@ -167,11 +175,13 @@ public class DataTest {
         assertArrayEquals(record, newRecord);
     }
 
-    @Test
-    public void createRecordRelpacingLockedDeleted() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+    // Deleted record is not unlocked yet, so a new created record cannot use that slot.
+    @Test(expected = RecordNotFoundException.class)
+    public void createRecordReplacingLockedDeleted() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         long cookie = data.lock(5);
         data.delete(5, cookie);
+
         int newRecId = data.create(record);
         String[] newRecord = data.read(5);
         assertEquals(5, newRecId);
@@ -179,9 +189,54 @@ public class DataTest {
     }
 
 
+    @Test
+    public void createRecordReplacingLockedDeletedUnlocked() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+        String[] record1 = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        String[] record2 = {"Kody", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        long cookie = data.lock(5);
+        data.delete(5, cookie);
+
+        int newRecId1 = data.create(record1);
+        data.unlock(5, cookie);
+        int newRecId2 = data.create(record2);
+
+        assertThat(5, is(not(equalTo(newRecId1))));
+        assertEquals(5, newRecId2);
+        String[] newRecord2 = data.read(5);
+        assertArrayEquals(record2, newRecord2);
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // UPDATE
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    @Test
+    public void updateRecord() throws RecordNotFoundException, SecurityException {
+        String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        long cookie = data.lock(5);
+        data.update(5, record, cookie);
+        data.unlock(5, cookie);
+
+        String[] newEdit = data.read(5);
+        assertArrayEquals(record, newEdit);
+    }
+
+
+    @Test(expected = SecurityException.class)
+    public void updateLockedRecord() throws RecordNotFoundException, SecurityException {
+        String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        data.lock(5);
+        data.update(5, record, 1234L);
+
+    }
+
+
     @After
     public void tearDown() {
         data.close();
+        DatabaseSchema.OFFSET_START_OF_RECORDS = 0;
+        DatabaseSchema.NUMBER_OF_FIELDS = 0;
+        DatabaseSchema.RECORD_SIZE_IN_BYTES = DatabaseSchema.DELETE_RECORD_FLAG_SIZE_IN_BYTES;
         try {
             Files.deleteIfExists(Paths.get(COPY_DATABASE));
         } catch (IOException e) {
