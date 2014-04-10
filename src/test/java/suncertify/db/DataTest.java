@@ -295,6 +295,13 @@ public class DataTest {
         assertArrayEquals(new int[]{6, 14}, found);
     }
 
+    @Test
+    public void findAll() {
+        String[] criteria = {null, null, null, null, null, null};
+        int[] found = data.find(criteria);
+        assertEquals(found.length, 28);
+    }
+
     @After
     public void tearDown() {
         data.close();
