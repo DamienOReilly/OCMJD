@@ -441,23 +441,26 @@ public class DatabaseIO {
         dbWriteLock.lock();
         try {
             for (int y = 0; y < records.size(); y++) {
-                String[] record = records.get(y);
-                boolean match = true;
-                for (int i = 0; i < criteria.length; i++) {
-                    if (criteria[i] == null) {
-                        // Null matches any field value.
-                        continue;
-                    } else {
-                        String field = record[i].toLowerCase().trim();
-                        String search = criteria[i].toLowerCase().trim();
-                        if (!field.startsWith(search)) {
-                            match = false;
-                            break;
+                //Skip records flagged as deleted.
+                if (!isRecordDeleted(y)) {
+                    String[] record = records.get(y);
+                    boolean match = true;
+                    for (int i = 0; i < criteria.length; i++) {
+                        if (criteria[i] == null) {
+                            // Null matches any field value.
+                            continue;
+                        } else {
+                            String field = record[i].toLowerCase().trim();
+                            String search = criteria[i].toLowerCase().trim();
+                            if (!field.startsWith(search)) {
+                                match = false;
+                                break;
+                            }
                         }
                     }
-                }
-                if (match) {
-                    found.add(y);
+                    if (match) {
+                        found.add(y);
+                    }
                 }
             }
         } finally {
