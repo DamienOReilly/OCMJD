@@ -188,7 +188,6 @@ public class DataTest {
         assertArrayEquals(record, newRecord);
     }
 
-
     @Test
     public void createRecordReplacingLockedDeletedUnlocked() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
         String[] record1 = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
@@ -206,10 +205,10 @@ public class DataTest {
         assertArrayEquals(record2, newRecord2);
     }
 
-
     /////////////////////////////////////////////////////////////////////////////////////////////
     // UPDATE
     /////////////////////////////////////////////////////////////////////////////////////////////
+
     @Test
     public void updateRecord() throws RecordNotFoundException, SecurityException {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
@@ -221,15 +220,80 @@ public class DataTest {
         assertArrayEquals(record, newEdit);
     }
 
-
     @Test(expected = SecurityException.class)
     public void updateLockedRecord() throws RecordNotFoundException, SecurityException {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         data.lock(5);
         data.update(5, record, 1234L);
-
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // FIND
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Test
+    public void findRecord() {
+        String[] criteria1 = {"Dogs With Tools", "Smallville", "Roofing", "7", "$35.00", null};
+        int[] found1 = data.find(criteria1);
+        assertArrayEquals(new int[]{0}, found1);
+
+        String[] criteria2 = {"Dogs With Tools", null, null, null, null, null};
+        int[] found2 = data.find(criteria2);
+        assertArrayEquals(new int[]{0, 4, 5, 8, 16, 25}, found2);
+
+        String[] criteria3 = {null, "Smallville", null, null, null, null};
+        int[] found3 = data.find(criteria3);
+        assertArrayEquals(new int[]{0, 1}, found3);
+    }
+
+    @Test
+    public void findNewRecords() throws DuplicateKeyException {
+        String[] record1 = {"Damo", "Arizona", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        String[] record2 = {"Kody", "Arizona", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+
+        data.create(record1);
+        data.create(record2);
+
+        String[] criteria = {null, "Arizona", null, null, null, null};
+        int[] found = data.find(criteria);
+        assertArrayEquals(new int[]{28, 29}, found);
+    }
+
+    @Test
+    public void findNewRecordsAfterDelete() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+        String[] record1 = {"Damo", "Arizona", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+        String[] record2 = {"Kody", "Arizona", "Heating, Painting, Plumbing", "1", "$999.50", ""};
+
+        data.create(record1);
+        long cookie = data.lock(5);
+        data.delete(5, cookie);
+        data.unlock(5, cookie);
+        data.create(record2);
+
+        String[] criteria = {null, "Arizona", null, null, null, null};
+        int[] found = data.find(criteria);
+        assertArrayEquals(new int[]{5, 28}, found);
+    }
+
+
+    @Test
+    public void findRecordsAfterUpdate() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+        String[] record1 = {"Damo", "Arizona", "Drinking", "1", "$999.50", ""};
+        String[] record2 = {"Kody", "Arizona", "Drinking", "1", "$999.50", ""};
+
+        long cookie1 = data.lock(6);
+        long cookie2 = data.lock(14);
+
+        data.update(6, record1, cookie1);
+        data.update(14, record2, cookie2);
+
+        data.unlock(6, cookie1);
+        data.unlock(14, cookie2);
+
+        String[] criteria = {null, null, "Drinking", null, null, null};
+        int[] found = data.find(criteria);
+        assertArrayEquals(new int[]{6, 14}, found);
+    }
 
     @After
     public void tearDown() {

@@ -65,7 +65,7 @@ public class Data implements DB {
      */
     @Override
     public int[] find(String[] criteria) {
-        return new int[0];
+        return database.find(criteria);
     }
 
 

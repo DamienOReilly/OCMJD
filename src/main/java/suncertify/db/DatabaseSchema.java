@@ -1,6 +1,6 @@
 package suncertify.db;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,9 +41,9 @@ public class DatabaseSchema {
     public static final String CHARSET_ENCODING = "US-ASCII";
 
     /**
-     * LinkedList to preserve order
+     * List of fields in the database schema.
      */
-    public static List<Field> fields = new LinkedList<>();
+    public static List<Field> fields = new ArrayList<>();
 
     /**
      * Offset where records begin in the database.

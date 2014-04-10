@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Logger;
 
 
 /**
@@ -39,6 +40,11 @@ public class DatabaseIO {
      * Synchronized write access to the physical database file.
      */
     private Lock dbWriteLock = new ReentrantLock();
+
+    /**
+     * Logger instance.
+     */
+    private Logger logger = Logger.getLogger("suncertify.db");
 
     /**
      * Constructor that take in database file location and parses the metadata and available records.
@@ -418,6 +424,45 @@ public class DatabaseIO {
         } finally {
             dbWriteLock.unlock();
         }
+    }
 
+    /**
+     * Returns an array of record numbers that match the specified criteria.
+     * Field n in the database file is described by criteria[n]. A null value in
+     * criteria[n] matches any field value. A non-null value in criteria[n]
+     * matches any field value that begins with criteria[n]. (For example,
+     * "Fred" matches "Fred" or "Freddy".)
+     *
+     * @param criteria The search criteria to be used in finding record(s)
+     * @return An array of record numbers that match the specified criteria
+     */
+    public int[] find(String[] criteria) {
+        ArrayList<Integer> found = new ArrayList<>();
+        dbWriteLock.lock();
+        try {
+            for (int y = 0; y < records.size(); y++) {
+                String[] record = records.get(y);
+                boolean match = true;
+                for (int i = 0; i < criteria.length; i++) {
+                    if (criteria[i] == null) {
+                        // Null matches any field value.
+                        continue;
+                    } else {
+                        String field = record[i].toLowerCase().trim();
+                        String search = criteria[i].toLowerCase().trim();
+                        if (!field.startsWith(search)) {
+                            match = false;
+                            break;
+                        }
+                    }
+                }
+                if (match) {
+                    found.add(y);
+                }
+            }
+        } finally {
+            dbWriteLock.unlock();
+        }
+        return Utils.integerArrayListToPrimitiveArray(found);
     }
 }
