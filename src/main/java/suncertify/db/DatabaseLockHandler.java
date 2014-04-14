@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  *
  * @author Damien O'Reilly
  */
-public class DatabaseLockHandler {
+class DatabaseLockHandler {
 
     /**
      * Hash Map containing records and their locks.
@@ -27,12 +27,12 @@ public class DatabaseLockHandler {
     /**
      * Provides synchronized access to the lock cookie map.
      */
-    private static Lock lock = new ReentrantLock();
+    private static final Lock lock = new ReentrantLock();
 
     /**
      * Provides a wait and notify thread mechanism.
      */
-    private static Condition lockCondition = lock.newCondition();
+    private static final Condition lockCondition = lock.newCondition();
 
     /**
      * Locks a record
@@ -40,7 +40,7 @@ public class DatabaseLockHandler {
      * @param recNo The record to attempt to lock.
      * @return A unique cookie that must be used when further interacting with this record.
      */
-    public long lock(int recNo) throws RecordNotFoundException {
+    public long lock(int recNo) {
         lock.lock();
         try {
             while (isLocked(recNo)) {
@@ -102,7 +102,7 @@ public class DatabaseLockHandler {
      *
      * @param recNo  The record number to check against.
      * @param cookie If the cookies match or not.
-     * @return
+     * @return True if cookie is valid, otherwise false.
      */
     public boolean isCookieValid(int recNo, long cookie) {
         lock.lock();
@@ -129,10 +129,10 @@ public class DatabaseLockHandler {
      * @param recNo Record number to check if locked.
      * @return True if locked.
      */
-    public boolean isRecordLocked(int recNo) {
+    public boolean isRecordUnlocked(int recNo) {
         lock.lock();
         try {
-            return isLocked(recNo);
+            return !isLocked(recNo);
         } finally {
             lock.unlock();
         }

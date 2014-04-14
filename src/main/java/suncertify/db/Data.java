@@ -19,7 +19,7 @@ public class Data implements DB {
     /**
      * Lock Handler for transactional safety.
      */
-    private DatabaseLockHandler databaseLockHandler;
+    private final DatabaseLockHandler databaseLockHandler;
 
     /**
      * Constructor that takes in a tring location to the database file on disk.

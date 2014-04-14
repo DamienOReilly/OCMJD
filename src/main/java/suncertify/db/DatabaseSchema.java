@@ -43,7 +43,7 @@ public class DatabaseSchema {
     /**
      * List of fields in the database schema.
      */
-    public static List<Field> fields = new ArrayList<>();
+    public static final List<Field> fields = new ArrayList<>();
 
     /**
      * Offset where records begin in the database.

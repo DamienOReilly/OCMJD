@@ -33,7 +33,7 @@ public class Utils {
     public static int[] integerArrayListToPrimitiveArray(ArrayList<Integer> integers) {
         int[] ints = new int[integers.size()];
         for (int i = 0; i < ints.length; i++) {
-            ints[i] = integers.get(i).intValue();
+            ints[i] = integers.get(i);
         }
         return ints;
     }

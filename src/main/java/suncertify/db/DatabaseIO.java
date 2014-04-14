@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  *
  * @author Damien O'Reilly
  */
-public class DatabaseIO {
+class DatabaseIO {
 
     /**
      * Database physical file.
@@ -34,12 +34,12 @@ public class DatabaseIO {
     /**
      * Lock Handler for transactional safety.
      */
-    private DatabaseLockHandler databaseLockHandler;
+    private final DatabaseLockHandler databaseLockHandler;
 
     /**
      * Synchronized write access to the physical database file.
      */
-    private Lock dbWriteLock = new ReentrantLock();
+    private final Lock dbWriteLock = new ReentrantLock();
 
     /**
      * Logger instance.
@@ -228,7 +228,7 @@ public class DatabaseIO {
      * @param recNo Record ID.
      * @return Returns true if deleted, false if not.
      */
-    public boolean isRecordDeleted(int recNo) {
+    boolean isRecordDeleted(int recNo) {
         return records.get(recNo)[0] == null;
     }
 
@@ -241,7 +241,7 @@ public class DatabaseIO {
      *                           cookie.
      */
     private void verifyLockStatus(int recNo, long lockCookie) throws SecurityException {
-        if (!databaseLockHandler.isRecordLocked(recNo)) {
+        if (databaseLockHandler.isRecordUnlocked(recNo)) {
             throw new SecurityException("Record " + recNo + " is not locked. Cannot delete.");
         }
         if (!databaseLockHandler.isCookieValid(recNo, lockCookie)) {
@@ -289,7 +289,7 @@ public class DatabaseIO {
             int flag = database.readUnsignedShort();
 
             if (flag == DatabaseSchema.DELETED_RECORD_FLAG &&
-                    !databaseLockHandler.isRecordLocked(getRecordIdFromOffset(currentPosition))) {
+                    databaseLockHandler.isRecordUnlocked(getRecordIdFromOffset(currentPosition))) {
                 return currentPosition;
             }
 
@@ -446,10 +446,7 @@ public class DatabaseIO {
                     String[] record = records.get(y);
                     boolean match = true;
                     for (int i = 0; i < criteria.length; i++) {
-                        if (criteria[i] == null) {
-                            // Null matches any field value.
-                            continue;
-                        } else {
+                        if (criteria[i] != null) {
                             String field = record[i].toLowerCase().trim();
                             String search = criteria[i].toLowerCase().trim();
                             if (!field.startsWith(search)) {
