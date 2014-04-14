@@ -1,6 +1,7 @@
 package suncertify.ui;
 
 import suncertify.Constants;
+import suncertify.utils.PropertiesManager;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -8,6 +9,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 /**
  * @author Damien O'Reilly
@@ -15,6 +17,8 @@ import java.awt.event.KeyEvent;
 public class ConfigurationDialog {
 
     private JDialog dialog;
+
+    private PropertiesManager propertiesManager = PropertiesManager.getInstance();
 
     /**
      * The text field for the path to the database file.
@@ -53,6 +57,7 @@ public class ConfigurationDialog {
         JButton selectFileButton = new JButton(CHOOSE);
         selectFileButton.addActionListener(configActionListener);
         selectFileButton.setMnemonic(KeyEvent.VK_S);
+        databasePath.setText(propertiesManager.getProperty("dbpath", ""));
 
         panel.add(databasePathLabel);
         panel.add(databasePath);
@@ -86,8 +91,10 @@ public class ConfigurationDialog {
 
     private void selectFile() {
         JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
         fileChooser.setDialogTitle("Please locate the database to use with this application.");
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Database", "db");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Database file", "db");
         fileChooser.setFileFilter(filter);
         int ret = fileChooser.showOpenDialog(dialog);
         if (ret == JFileChooser.APPROVE_OPTION) {

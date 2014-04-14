@@ -16,28 +16,13 @@ public class PropertiesManager {
     /**
      * The name of the file that wil store properties.
      */
-    private static final String PROPERTIES_FILE = "suncertify.properties";
+    private static final File PROPERTIES_FILE = new File(System.getProperty("user.dir"), "suncertify.properties");
 
     /**
      * Lock to synchronize access to loading/saving of properties. It is possible for multiple clients to try save
      * properties at the same time.
      */
-    private static Lock propertiesLock = new ReentrantLock();
-
-    /**
-     * Constant representing the path to the database
-     */
-    private static final String DATABASE_PATH = "dbpath";
-
-    /**
-     * Constant representing the RMI host name
-     */
-    private static final String RMI_HOST = "rmihost";
-
-    /**
-     * Constant representing the RMI port
-     */
-    private static final String RMI_PORT = "rmiport";
+    private Lock propertiesLock = new ReentrantLock();
 
     /**
      * Singleton instance.
@@ -47,15 +32,15 @@ public class PropertiesManager {
     /**
      *
      */
-    private static Properties properties;
+    private Properties properties;
 
     /**
      * Default constructor. Private due to use of singleton pattern. Loads existing properties, if any.
      */
     private PropertiesManager() {
-        load();
-        if (properties == null) {
-            properties = new Properties();
+        properties = new Properties();
+        if (PROPERTIES_FILE.exists()) {
+            load();
         }
     }
 
@@ -76,7 +61,7 @@ public class PropertiesManager {
         try (InputStream in = new BufferedInputStream(new FileInputStream(PROPERTIES_FILE))) {
             properties.load(in);
         } catch (IOException e) {
-            e.printStackTrace();
+            // First run, properties file won't exist.
         } finally {
             propertiesLock.unlock();
         }
@@ -89,8 +74,6 @@ public class PropertiesManager {
         propertiesLock.lock();
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(PROPERTIES_FILE))) {
             properties.store(out, Constants.APPLICATION_NAME + " configuration.");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -116,7 +99,7 @@ public class PropertiesManager {
      * @return The value for the given key.
      */
     public String getProperty(String key) {
-        return getProperty(key);
+        return properties.getProperty(key);
     }
 
     /**
@@ -132,6 +115,7 @@ public class PropertiesManager {
         if (value == null) {
             value = defaultValue;
             properties.setProperty(key, defaultValue);
+            save();
         }
         return value;
     }
