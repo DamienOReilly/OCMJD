@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class PropertiesManager {
     /**
-     * The name of the file that wil store properties.
+     * The name of the file that will store properties.
      */
     private static final File PROPERTIES_FILE = new File(System.getProperty("user.dir"), "suncertify.properties");
 

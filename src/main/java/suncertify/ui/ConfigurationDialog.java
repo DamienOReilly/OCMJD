@@ -85,9 +85,9 @@ public class ConfigurationDialog {
 
 
     //Test
-    public static void main(String[] args) {
-        ConfigurationDialog configurationDialog = new ConfigurationDialog();
-    }
+//    public static void main(String[] args) {
+//        ConfigurationDialog configurationDialog = new ConfigurationDialog();
+//    }
 
     private void selectFile() {
         JFileChooser fileChooser = new JFileChooser();
@@ -118,9 +118,19 @@ public class ConfigurationDialog {
                 case CHOOSE:
                     selectFile();
                     break;
+                case OK:
+                    persistProperties();
+                    break;
                 case EXIT:
                     System.exit(0);
             }
         }
     }
+
+    private void persistProperties() {
+        propertiesManager.setProperty("dbpath", databasePath.getText());
+
+    }
+
 }
+
