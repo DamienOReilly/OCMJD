@@ -9,11 +9,9 @@ public interface DB {
      * Reads a record from the file. Returns an array where each element is a
      * record value.
      *
-     * @param recNo
-     *         The record number of the record to search for
+     * @param recNo The record number of the record to search for
      * @return A {@link String} array containing the record elements
-     * @throws RecordNotFoundException
-     *         If no record number is found.
+     * @throws RecordNotFoundException If no record number is found.
      */
     public String[] read(int recNo) throws RecordNotFoundException;
 
@@ -22,17 +20,12 @@ public interface DB {
      * data[n]. Throws SecurityException if the record is locked with a cookie
      * other than lockCookie.
      *
-     * @param recNo
-     *         The record number of the record to update
-     * @param data
-     *         A {@link String} array containing the record elements to
-     *         update the record with
-     * @param lockCookie
-     *         The lock cookie got when the record was locked
-     * @throws RecordNotFoundException
-     *         If the record number is not found
-     * @throws SecurityException
-     *         If the record is already locked by a different client/user
+     * @param recNo      The record number of the record to update
+     * @param data       A {@link String} array containing the record elements to
+     *                   update the record with
+     * @param lockCookie The lock cookie got when the record was locked
+     * @throws RecordNotFoundException If the record number is not found
+     * @throws SecurityException       If the record is already locked by a different client/user
      */
     public void update(int recNo, String[] data, long lockCookie)
             throws RecordNotFoundException, SecurityException;
@@ -42,14 +35,10 @@ public interface DB {
      * available for reuse. Throws SecurityException if the record is locked
      * with a cookie other than lockCookie.
      *
-     * @param recNo
-     *         The record number to delete
-     * @param lockCookie
-     *         The lock cookie got when the record was locked
-     * @throws RecordNotFoundException
-     *         If the record number is not found
-     * @throws SecurityException
-     *         If the record is already locked by a different client/user
+     * @param recNo      The record number to delete
+     * @param lockCookie The lock cookie got when the record was locked
+     * @throws RecordNotFoundException If the record number is not found
+     * @throws SecurityException       If the record is already locked by a different client/user
      */
     public void delete(int recNo, long lockCookie)
             throws RecordNotFoundException, SecurityException;
@@ -61,8 +50,7 @@ public interface DB {
      * matches any field value that begins with criteria[n]. (For example,
      * "Fred" matches "Fred" or "Freddy".)
      *
-     * @param criteria
-     *         The search criteria to be used in finding record(s)
+     * @param criteria The search criteria to be used in finding record(s)
      * @return An array of record numbers that match the specified criteria
      */
     public int[] find(String[] criteria);
@@ -71,11 +59,9 @@ public interface DB {
      * Creates a new record in the database (possibly reusing a deleted entry).
      * Inserts the given data, and returns the record number of the new record.
      *
-     * @param data
-     *         The record details
+     * @param data The record details
      * @return The record number of the newly created record
-     * @throws DuplicateKeyException
-     *         If the record number already exists
+     * @throws DuplicateKeyException If the record number already exists
      */
     public int create(String[] data) throws DuplicateKeyException;
 
@@ -86,11 +72,9 @@ public interface DB {
      * different client, the current thread gives up the CPU and consumes no CPU
      * cycles until the record is unlocked.
      *
-     * @param recNo
-     *         The record number of the record to lock
+     * @param recNo The record number of the record to lock
      * @return A lock cookie.
-     * @throws RecordNotFoundException
-     *         If the record number is not found
+     * @throws RecordNotFoundException If the record number is not found
      */
     public long lock(int recNo) throws RecordNotFoundException;
 
@@ -98,14 +82,10 @@ public interface DB {
      * Releases the lock on a record. Cookie must be the cookie returned when
      * the record was locked; otherwise throws SecurityException.
      *
-     * @param recNo
-     *         The record number of the record to unlock
-     * @param cookie
-     *         The cookie that the record was originally locked with
-     * @throws RecordNotFoundException
-     *         If the record number is not found
-     * @throws SecurityException
-     *         If the record is already locked by a different client/user
+     * @param recNo  The record number of the record to unlock
+     * @param cookie The cookie that the record was originally locked with
+     * @throws RecordNotFoundException If the record number is not found
+     * @throws SecurityException       If the record is already locked by a different client/user
      */
     public void unlock(int recNo, long cookie) throws RecordNotFoundException,
             SecurityException;

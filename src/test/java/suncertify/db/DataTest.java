@@ -3,11 +3,7 @@ package suncertify.db;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import suncertify.BaseTest;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -15,20 +11,12 @@ import static org.junit.Assert.*;
 /**
  * @author Damien O'Reilly
  */
-public class DataTest {
+public class DataTest extends BaseTest {
 
     private Data data = null;
-    private static final String ORIGINAL_DATABASE = "db-2x2.db";
-    private static final String COPY_DATABASE = "db-2x2.db-test";
 
     @Before
-    public void setUp() {
-        try {
-            Files.copy(Paths.get(ORIGINAL_DATABASE), Paths.get(COPY_DATABASE), StandardCopyOption.COPY_ATTRIBUTES,
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void testSetUp() {
         data = new Data(COPY_DATABASE);
     }
 
@@ -164,7 +152,8 @@ public class DataTest {
     }
 
     @Test
-    public void createRecordRelpacingDeleted() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+    public void createRecordRelpacingDeleted() throws DuplicateKeyException, RecordNotFoundException,
+            SecurityException {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         long cookie = data.lock(5);
         data.delete(5, cookie);
@@ -177,7 +166,8 @@ public class DataTest {
 
     // Deleted record is not unlocked yet, so a new created record cannot use that slot.
     @Test(expected = RecordNotFoundException.class)
-    public void createRecordReplacingLockedDeleted() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+    public void createRecordReplacingLockedDeleted() throws DuplicateKeyException, RecordNotFoundException,
+            SecurityException {
         String[] record = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         long cookie = data.lock(5);
         data.delete(5, cookie);
@@ -189,7 +179,8 @@ public class DataTest {
     }
 
     @Test
-    public void createRecordReplacingLockedDeletedUnlocked() throws DuplicateKeyException, RecordNotFoundException, SecurityException {
+    public void createRecordReplacingLockedDeletedUnlocked() throws DuplicateKeyException, RecordNotFoundException,
+            SecurityException {
         String[] record1 = {"Damo", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         String[] record2 = {"Kody", "Athlone", "Heating, Painting, Plumbing", "1", "$999.50", ""};
         long cookie = data.lock(5);
@@ -303,15 +294,10 @@ public class DataTest {
     }
 
     @After
-    public void tearDown() {
+    public void testTearDown() {
         data.close();
         DatabaseSchema.OFFSET_START_OF_RECORDS = 0;
         DatabaseSchema.NUMBER_OF_FIELDS = 0;
         DatabaseSchema.RECORD_SIZE_IN_BYTES = DatabaseSchema.DELETE_RECORD_FLAG_SIZE_IN_BYTES;
-        try {
-            Files.deleteIfExists(Paths.get(COPY_DATABASE));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

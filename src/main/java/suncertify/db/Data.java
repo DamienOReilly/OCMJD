@@ -23,6 +23,7 @@ public class Data implements DB {
 
     /**
      * Constructor that takes in a tring location to the database file on disk.
+     *
      * @param databasePath Path to the database file on disk.
      */
     public Data(String databasePath) {

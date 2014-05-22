@@ -1,6 +1,6 @@
 package suncertify.utils;
 
-import suncertify.Constants;
+import suncertify.common.Constants;
 
 import java.io.*;
 import java.util.Properties;

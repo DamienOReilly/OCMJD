@@ -1,4 +1,4 @@
-package suncertify;
+package suncertify.common;
 
 /**
  * @author Damien O'Reilly

@@ -16,8 +16,7 @@ public class RecordNotFoundException extends Exception {
     /**
      * Constructs a RecordNotFoundException with an informative message.
      *
-     * @param message
-     *         Informative message
+     * @param message Informative message
      */
     public RecordNotFoundException(String message) {
         super(message);

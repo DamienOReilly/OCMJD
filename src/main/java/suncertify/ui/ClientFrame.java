@@ -1,6 +1,7 @@
 package suncertify.ui;
 
-import suncertify.Constants;
+import suncertify.application.ApplicationMode;
+import suncertify.common.Constants;
 
 import javax.swing.*;
 
@@ -21,7 +22,7 @@ public class ClientFrame {
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setResizable(false);
-        configurationDialog = new ConfigurationDialog();
+        configurationDialog = new ConfigurationDialog(ApplicationMode.NETWORK);
 
         clientController = new ClientController();
 

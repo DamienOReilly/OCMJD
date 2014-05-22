@@ -1,6 +1,7 @@
 package suncertify.ui;
 
-import suncertify.Constants;
+import suncertify.application.ApplicationMode;
+import suncertify.common.Constants;
 import suncertify.utils.PropertiesManager;
 
 import javax.swing.*;
@@ -32,14 +33,14 @@ public class ConfigurationDialog {
     private ConfigActionListener configActionListener;
 
 
-    public ConfigurationDialog() {
+    public ConfigurationDialog(ApplicationMode mode) {
         configActionListener = new ConfigActionListener();
         dialog = new JDialog();
         dialog.setTitle("Configure " + Constants.APPLICATION_NAME);
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(null);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
 
         dialog.add(getDatabasePanel(), BorderLayout.NORTH);
         dialog.add(getNavigationPanel(), BorderLayout.SOUTH);
@@ -120,6 +121,7 @@ public class ConfigurationDialog {
                     break;
                 case OK:
                     persistProperties();
+                    dialog.dispose();
                     break;
                 case EXIT:
                     System.exit(0);
@@ -129,8 +131,6 @@ public class ConfigurationDialog {
 
     private void persistProperties() {
         propertiesManager.setProperty("dbpath", databasePath.getText());
-
     }
 
 }
-

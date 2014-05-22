@@ -16,8 +16,7 @@ public class DuplicateKeyException extends Exception {
     /**
      * Constructs a DuplicateKeyException with an informative message.
      *
-     * @param message
-     *         Informative message
+     * @param message Informative message
      */
     public DuplicateKeyException(String message) {
         super(message);
