@@ -19,20 +19,19 @@ public class PropertiesManager {
     private static final File PROPERTIES_FILE = new File(System.getProperty("user.dir"), "suncertify.properties");
 
     /**
-     * Lock to synchronize access to loading/saving of properties. It is possible for multiple clients to try save
-     * properties at the same time.
+     * Lock to synchronize access to loading/saving of properties.
      */
-    private Lock propertiesLock = new ReentrantLock();
+    private final Lock propertiesLock = new ReentrantLock();
 
     /**
      * Singleton instance.
      */
-    private static PropertiesManager propertiesManager = new PropertiesManager();
+    private static final PropertiesManager propertiesManager = new PropertiesManager();
 
     /**
      *
      */
-    private Properties properties;
+    private final Properties properties;
 
     /**
      * Default constructor. Private due to use of singleton pattern. Loads existing properties, if any.

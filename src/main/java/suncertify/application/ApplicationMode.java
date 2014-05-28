@@ -18,5 +18,6 @@ public enum ApplicationMode {
     /**
      * The network client mode.
      */
-    NETWORK
+    NETWORK;
+
 }

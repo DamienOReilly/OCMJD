@@ -94,31 +94,7 @@ public class Contractor implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Name=[");
-        sb.append(name);
-        sb.append("], ");
-
-        sb.append("Location=[");
-        sb.append(location);
-        sb.append("], ");
-
-        sb.append("Specialties=[");
-        sb.append(specialties);
-        sb.append("], ");
-
-        sb.append("Size=[");
-        sb.append(size);
-        sb.append("], ");
-
-        sb.append("Rate=[");
-        sb.append(rate);
-        sb.append("], ");
-
-        sb.append("Owner=[");
-        sb.append(owner);
-        sb.append("]");
-
-        return sb.toString();
+        return "Record ID=[" + recordId + "], Name=[" + name + "], Location=[" + location + "], " +
+                "Specialties=[" + specialties + "], Size=[" + size + "], Rate=[" + rate + "], Owner=[" + owner + "]";
     }
 }

@@ -2,6 +2,7 @@ package suncertify.application;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import suncertify.BaseTest;
 import suncertify.common.Contractor;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * @author Damien O'Reilly
  */
+@Ignore
 public class ContractorServiceImplTest extends BaseTest {
 
     private ContractorService service;

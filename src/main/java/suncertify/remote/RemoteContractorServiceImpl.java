@@ -1,4 +1,6 @@
-package suncertify.application;
+package suncertify.remote;
+
+import suncertify.application.ContractorServiceImpl;
 
 /**
  * @author Damien O'Reilly

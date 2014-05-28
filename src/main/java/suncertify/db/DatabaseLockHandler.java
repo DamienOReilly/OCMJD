@@ -25,23 +25,23 @@ class DatabaseLockHandler {
     private Logger logger = Logger.getLogger("suncertify.db");
 
     /**
-     * Provides synchronized access to the lock cookie map.
+     * Provides synchronized access to the mapLock cookie map.
      */
-    private static final Lock lock = new ReentrantLock();
+    private static final Lock mapLock = new ReentrantLock();
 
     /**
      * Provides a wait and notify thread mechanism.
      */
-    private static final Condition lockCondition = lock.newCondition();
+    private static final Condition lockCondition = mapLock.newCondition();
 
     /**
      * Locks a record
      *
-     * @param recNo The record to attempt to lock.
+     * @param recNo The record to attempt to mapLock.
      * @return A unique cookie that must be used when further interacting with this record.
      */
     public long lock(int recNo) {
-        lock.lock();
+        mapLock.lock();
         try {
             while (isLocked(recNo)) {
                 /**
@@ -54,7 +54,7 @@ class DatabaseLockHandler {
             locks.put(recNo, lockCookie);
             return lockCookie;
         } finally {
-            lock.unlock();
+            mapLock.unlock();
         }
     }
 
@@ -67,7 +67,7 @@ class DatabaseLockHandler {
      * @throws SecurityException Incorrect cookie or record is not currently locked.
      */
     public void unlock(int recNo, long cookie) throws SecurityException {
-        lock.lock();
+        mapLock.lock();
         try {
             // Check record is locked first.
             if (!isLocked(recNo)) {
@@ -82,7 +82,7 @@ class DatabaseLockHandler {
                 throw new SecurityException("Provided cookie does not match cookie of locked record.");
             }
         } finally {
-            lock.unlock();
+            mapLock.unlock();
         }
     }
 
@@ -105,11 +105,11 @@ class DatabaseLockHandler {
      * @return True if cookie is valid, otherwise false.
      */
     public boolean isCookieValid(int recNo, long cookie) {
-        lock.lock();
+        mapLock.lock();
         try {
             return validateCookie(recNo, cookie);
         } finally {
-            lock.unlock();
+            mapLock.unlock();
         }
     }
 
@@ -130,11 +130,11 @@ class DatabaseLockHandler {
      * @return True if locked.
      */
     public boolean isRecordUnlocked(int recNo) {
-        lock.lock();
+        mapLock.lock();
         try {
             return !isLocked(recNo);
         } finally {
-            lock.unlock();
+            mapLock.unlock();
         }
     }
 }

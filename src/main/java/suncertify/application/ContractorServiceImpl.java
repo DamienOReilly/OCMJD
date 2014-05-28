@@ -5,7 +5,6 @@ import suncertify.db.DB;
 import suncertify.db.DatabaseFactory;
 import suncertify.db.RecordNotFoundException;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +14,7 @@ import java.util.List;
 public class ContractorServiceImpl implements ContractorService {
 
     // TODO: protected to assist unit test
-    protected DB database;
+    protected final DB database;
 
     public ContractorServiceImpl(String databasePath) {
         database = DatabaseFactory.getDatabase(databasePath);
@@ -35,7 +34,7 @@ public class ContractorServiceImpl implements ContractorService {
     }
 
     @Override
-    public List<Contractor> search(String[] criteria) throws RemoteException {
+    public List<Contractor> search(String[] criteria) {
 
         List<Contractor> foundResults = new ArrayList<>();
         int[] recordIds = database.find(criteria);
@@ -52,7 +51,6 @@ public class ContractorServiceImpl implements ContractorService {
     }
 
     private Contractor read(int recordId) throws RecordNotFoundException {
-        Contractor contractor = new Contractor(recordId, database.read(recordId));
-        return contractor;
+        return new Contractor(recordId, database.read(recordId));
     }
 }

@@ -10,22 +10,34 @@ import javax.swing.*;
  */
 public class ClientFrame {
 
-    private JFrame mainFrame = new JFrame();
-
-    private ConfigurationDialog configurationDialog;
+    private JFrame clientFrame;
 
     private ClientController clientController;
 
-    public ClientFrame() {
-        mainFrame.setTitle(Constants.APPLICATION_NAME + " - " + Constants.APPLICATION_VERSION);
-        mainFrame.setSize(1000, 700);
-        mainFrame.setLocationRelativeTo(null);
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setResizable(false);
-        configurationDialog = new ConfigurationDialog(ApplicationMode.NETWORK);
+    private JTable table;
 
+    public ClientFrame() {
+        clientFrame = new JFrame();
+        clientFrame.setTitle(Constants.APPLICATION_NAME + " - " + Constants.APPLICATION_VERSION);
+        clientFrame.setSize(1000, 700);
+        clientFrame.setLocationRelativeTo(null);
+        clientFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        clientFrame.setResizable(true);
+        ConfigurationDialog configurationDialog = new ConfigurationDialog(ApplicationMode.NETWORK);
         clientController = new ClientController();
 
+        init();
+
+    }
+
+    private void init() {
+        JPanel panel = new JPanel(new BoxLayout(clientFrame, BoxLayout.Y_AXIS));
+        panel.add(tablePanel());
+    }
+
+    private JScrollPane tablePanel() {
+
+        return null;
     }
 
     public static void main(String[] args) {
