@@ -24,6 +24,18 @@ public class ContractorModel extends AbstractTableModel {
         columnNames.add("Customer ID");
     }
 
+    public void updateData(List<Contractor> contractorList) {
+        for (Contractor contractor : contractorList) {
+            contractors.add(contractor);
+        }
+        fireTableDataChanged();
+    }
+
+    public void clearData() {
+        contractors.clear();
+        fireTableDataChanged();
+    }
+
     /**
      * Returns the number of rows in the model. A
      * <code>JTable</code> uses this method to determine how many rows it
@@ -61,6 +73,9 @@ public class ContractorModel extends AbstractTableModel {
      */
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        if ((rowIndex >= 0) && (rowIndex < contractors.size())) {
+            return contractors.get(rowIndex).asArray()[columnIndex];
+        }
         return null;
     }
 
@@ -74,4 +89,6 @@ public class ContractorModel extends AbstractTableModel {
     public String getColumnName(int column) {
         return columnNames.get(column);
     }
+
+
 }

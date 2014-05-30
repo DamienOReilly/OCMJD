@@ -6,18 +6,15 @@ import suncertify.utils.PropertiesManager;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.PlainDocument;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.rmi.registry.Registry;
 
 /**
  * @author Damien O'Reilly
  */
 public class ConfigurationDialog {
 
-    private final JDialog dialog;
+    private JDialog dialog;
 
     private final PropertiesManager propertiesManager = PropertiesManager.getInstance();
 
@@ -26,25 +23,35 @@ public class ConfigurationDialog {
      */
     private final JTextField databasePath = new JTextField(20);
 
+    JTextField hostnameField = new JTextField(15);
+
+    private ApplicationMode mode;
+
     private static final String CHOOSE = "Select file...";
     private static final String OK = "OK";
     private static final String EXIT = "Exit";
 
-    private final ConfigActionListener configActionListener;
+    private ConfigActionListener configActionListener;
     private GridBagConstraints gbc = new GridBagConstraints();
     private int rowCount = 0;
 
 
     public ConfigurationDialog(ApplicationMode mode) {
+        this.mode = mode;
+    }
+
+    public void init() {
         configActionListener = new ConfigActionListener();
         dialog = new JDialog();
 
+        // Exit the VM if user clicks close on dialog window header.
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {
                 System.exit(0);
             }
         });
+
         dialog.setTitle("Configure " + Constants.APPLICATION_NAME);
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(null);
@@ -54,8 +61,12 @@ public class ConfigurationDialog {
 
         gbc.insets = new Insets(2, 2, 2, 2);
 
-        getDatabasePanel();
-        getNetworkPanel();
+        if ((mode == ApplicationMode.ALONE) || (mode == ApplicationMode.SERVER)) {
+            getDatabasePanel();
+        }
+        if ((mode == ApplicationMode.NETWORK) || (mode == ApplicationMode.SERVER)) {
+            getNetworkPanel();
+        }
         getNavigationPanel();
 
         dialog.pack();
@@ -93,16 +104,15 @@ public class ConfigurationDialog {
 
     private void getNetworkPanel() {
         JLabel hostnameLabel = new JLabel("Hostname:");
-        JTextField hostnameField = new JTextField(15);
         hostnameField.setText(propertiesManager.getProperty("hostname", "localhost"));
         hostnameField.setToolTipText("Hostname of the server running the database.");
 
-        JLabel portLabel = new JLabel("Port:");
-        JTextField portField = new JTextField(6);
-        portField.setToolTipText("Post the server is listening on.");
-        portField.setText(propertiesManager.getProperty("port", String.valueOf(Registry.REGISTRY_PORT)));
-        PlainDocument doc = (PlainDocument) portField.getDocument();
-        doc.setDocumentFilter(new NumericDocumentFilter());
+//        JLabel portLabel = new JLabel("Port:");
+//        JTextField portField = new JTextField(6);
+//        portField.setToolTipText("Post the server is listening on.");
+//        portField.setText(propertiesManager.getProperty("port", String.valueOf(Registry.REGISTRY_PORT)));
+//        PlainDocument doc = (PlainDocument) portField.getDocument();
+//        doc.setDocumentFilter(new NumericDocumentFilter());
 
         gbc.anchor = GridBagConstraints.NORTHWEST;
 
@@ -115,16 +125,16 @@ public class ConfigurationDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         dialog.add(hostnameField, gbc);
 
-        rowCount++;
-
-        gbc.gridx = 0;
-        gbc.gridy = rowCount;
-        dialog.add(portLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = rowCount;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        dialog.add(portField, gbc);
+//        rowCount++;
+//
+//        gbc.gridx = 0;
+//        gbc.gridy = rowCount;
+//        dialog.add(portLabel, gbc);
+//
+//        gbc.gridx = 1;
+//        gbc.gridy = rowCount;
+//        gbc.fill = GridBagConstraints.HORIZONTAL;
+//        dialog.add(portField, gbc);
 
         gbc.fill = GridBagConstraints.NONE;
 
@@ -158,7 +168,6 @@ public class ConfigurationDialog {
     private void selectFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
         fileChooser.setDialogTitle("Please locate the database to use with this application.");
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Database file (*.db)", "db");
         fileChooser.setFileFilter(filter);
@@ -195,7 +204,12 @@ public class ConfigurationDialog {
     }
 
     private void persistProperties() {
-        propertiesManager.setProperty("dbpath", databasePath.getText());
+        if ((mode == ApplicationMode.ALONE) || (mode == ApplicationMode.SERVER)) {
+            propertiesManager.setProperty("dbpath", databasePath.getText());
+        }
+        if ((mode == ApplicationMode.NETWORK) || (mode == ApplicationMode.SERVER)) {
+            propertiesManager.setProperty("hostname", hostnameField.getText());
+        }
     }
 
 }

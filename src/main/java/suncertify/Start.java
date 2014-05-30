@@ -1,10 +1,15 @@
 package suncertify;
 
 import suncertify.application.ApplicationMode;
+import suncertify.application.ContractorService;
+import suncertify.application.ServiceFactory;
 import suncertify.ui.ClientController;
 import suncertify.ui.ClientFrame;
-import suncertify.ui.ContractorModel;
+import suncertify.ui.ClientModel;
+import suncertify.ui.ConfigurationDialog;
 
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Arrays;
 
 /**
@@ -16,11 +21,27 @@ public class Start {
 
         if (args.length == 0) {
 
-        } else if (args[1].equalsIgnoreCase(ApplicationMode.ALONE.name())) {
+        } else if (args[0].equalsIgnoreCase(ApplicationMode.ALONE.name())) {
 
-            ContractorModel model = new ContractorModel();
-            ClientFrame view = new ClientFrame();
-            ClientController controller = new ClientController(model, view);
+            try {
+                ConfigurationDialog configurationDialog = new ConfigurationDialog(ApplicationMode.ALONE);
+                configurationDialog.init();
+
+                ContractorService service = ServiceFactory.getService(ApplicationMode.ALONE);
+
+                ClientModel model = new ClientModel(service);
+                ClientFrame view = new ClientFrame(service);
+                ClientController controller = new ClientController(model, view);
+
+                view.init();
+
+            } catch (RemoteException e) {
+                //TODO
+                e.printStackTrace();
+            } catch (NotBoundException e) {
+                //TODO
+                e.printStackTrace();
+            }
 
         } else if (args[1].equalsIgnoreCase(ApplicationMode.SERVER.name())) {
 

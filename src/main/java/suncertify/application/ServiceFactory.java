@@ -23,7 +23,7 @@ public class ServiceFactory {
     private ServiceFactory() {
     }
 
-    public ContractorService getService(ApplicationMode mode) throws RemoteException, NotBoundException {
+    public static ContractorService getService(ApplicationMode mode) throws RemoteException, NotBoundException {
         ContractorService contractorService = null;
         switch (mode) {
             case NETWORK:
@@ -41,17 +41,17 @@ public class ServiceFactory {
         return contractorService;
     }
 
-    private ContractorService getContractorService() {
+    private static ContractorService getContractorService() {
         String dbPath = PropertiesManager.getInstance().getProperty("dbpath");
         return new ContractorServiceImpl(dbPath);
     }
 
-    private ContractorService getRemoteContractorService() throws RemoteException, NotBoundException {
+    private static ContractorService getRemoteContractorService() throws RemoteException, NotBoundException {
         String hostname = PropertiesManager.getInstance().getProperty("hostname");
-        int port = Integer.parseInt(PropertiesManager.getInstance().getProperty("port"));
+        int port = Registry.REGISTRY_PORT;
         logger.log(Level.INFO, "Using hostname: " + hostname + " and port: " + port);
 
-        Registry registry = LocateRegistry.getRegistry(hostname, port);
+        Registry registry = LocateRegistry.getRegistry(hostname);
         return (ContractorService) registry.lookup(RemoteContractorService.SERVER_NAME);
     }
 }
