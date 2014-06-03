@@ -5,6 +5,7 @@ import suncertify.common.Constants;
 import suncertify.common.Contractor;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,6 +40,9 @@ public class ClientFrame {
 
     public ClientFrame(ContractorService service) {
         this.service = service;
+
+        contractorModel = new ContractorModel();
+        table = new JTable(contractorModel);
     }
 
     public void init() {
@@ -72,7 +76,11 @@ public class ClientFrame {
     private JPanel searchPanel() {
         JPanel panel = new JPanel();
         searchButton.setMnemonic(KeyEvent.VK_S);
+        searchButton.setToolTipText("Search the database based on the input criteria.");
+        nameField.setToolTipText("Exact name to search for.");
         refreshButton.setMnemonic(KeyEvent.VK_R);
+        refreshButton.setToolTipText("Retrieve up to date records from database.");
+
         panel.add(nameLabel);
         panel.add(nameField);
         panel.add(locationLabel);
@@ -86,16 +94,19 @@ public class ClientFrame {
     }
 
     // Table of Contractors
-    private JScrollPane tablePanel() {
-        contractorModel = new ContractorModel();
-        table = new JTable(contractorModel);
+    private JPanel tablePanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(new EmptyBorder(5, 5, 1, 5));
         table.setFillsViewportHeight(true);
         table.setCellSelectionEnabled(false);
         table.setColumnSelectionAllowed(false);
         table.setRowSelectionAllowed(true);
         table.setDragEnabled(false);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
-        return scrollPane;
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
     }
 
     // Footer Panel
@@ -110,7 +121,9 @@ public class ClientFrame {
     private JPanel bookingPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         bookButton.setMnemonic(KeyEvent.VK_B);
+        bookButton.setToolTipText("Book the selected record.");
         unbookButton.setMnemonic(KeyEvent.VK_U);
+        unbookButton.setToolTipText("Un-book the selected record");
         panel.add(bookButton);
         panel.add(unbookButton);
         return panel;
@@ -119,6 +132,7 @@ public class ClientFrame {
     private Component exitButton() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton exitButton = new JButton("Exit");
+        exitButton.setToolTipText("Exit the application.");
         exitButton.setMnemonic(KeyEvent.VK_E);
         exitButton.addActionListener(new ActionListener() {
             @Override
@@ -164,5 +178,17 @@ public class ClientFrame {
 
     public void setLocationSearchText(String input) {
         locationField.setText(input);
+    }
+
+    public JTable getTable() {
+        return table;
+    }
+
+    public void enableBookingButton(boolean toggle) {
+        bookButton.setEnabled(toggle);
+    }
+
+    public void enableUnBookingButton(boolean toggle) {
+        unbookButton.setEnabled(toggle);
     }
 }

@@ -1,6 +1,7 @@
 package suncertify.ui;
 
 import suncertify.application.ContractorService;
+import suncertify.application.ContractorUnavailableException;
 import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
 
@@ -20,8 +21,15 @@ public class ClientModel {
     }
 
     public void bookContractor(Contractor contractor, String customerId) throws suncertify.db.SecurityException,
-            RemoteException, RecordNotFoundException {
-        service.bookContractor(contractor, customerId);
+            RemoteException, RecordNotFoundException, ContractorUnavailableException {
+        contractor.setOwner(customerId);
+        service.bookContractor(contractor);
+    }
+
+    public void unbookContractor(Contractor contractor) throws suncertify.db.SecurityException,
+            RemoteException, RecordNotFoundException, ContractorUnavailableException {
+        contractor.setOwner("");
+        service.unbookContractor(contractor);
     }
 
     public List<Contractor> search(String[] criteria) throws RemoteException {

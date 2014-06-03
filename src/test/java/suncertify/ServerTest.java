@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import suncertify.application.ContractorService;
+import suncertify.application.ContractorUnavailableException;
 import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
 import suncertify.remote.RemoteContractorService;
@@ -39,11 +40,13 @@ public class ServerTest {
 
     @Test
     public void testRMIConnectionToServerAndBook() throws suncertify.db.SecurityException, RemoteException,
-            RecordNotFoundException {
-        service.bookContractor(new Contractor(5, "aa", "bb", "cc", "dd", "ee", ""), "00000200");
+            RecordNotFoundException, ContractorUnavailableException {
+        Contractor contractor = new Contractor(5, new String[5]);
+        contractor.setOwner("00000020");
+        service.bookContractor(contractor);
         List<Contractor> contractors = service.search(new String[1]);
-        for (Contractor contractor : contractors) {
-            System.out.println(contractor.toString());
+        for (Contractor c : contractors) {
+            System.out.println(c.toString());
         }
     }
 

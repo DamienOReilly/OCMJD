@@ -34,10 +34,13 @@ public class ContractorServiceImplTest extends BaseTest {
     }
 
     @Test
-    public void bookTest() throws RemoteException, RecordNotFoundException, suncertify.db.SecurityException {
+    public void bookTest() throws RemoteException, RecordNotFoundException, suncertify.db.SecurityException,
+            ContractorUnavailableException {
         List<Contractor> contractors = service.search(new String[6]);
         System.out.println(contractors.get(5).toString());
-        service.bookContractor(contractors.get(5), "12345678");
+        Contractor contractor = contractors.get(5);
+        contractor.setOwner("12345678");
+        service.bookContractor(contractor);
         System.out.println(contractors.get(5).toString());
     }
 

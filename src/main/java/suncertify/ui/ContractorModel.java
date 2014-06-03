@@ -36,6 +36,10 @@ public class ContractorModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    public Contractor getContractor(int row) {
+        return contractors.get(row);
+    }
+
     /**
      * Returns the number of rows in the model. A
      * <code>JTable</code> uses this method to determine how many rows it
@@ -90,5 +94,15 @@ public class ContractorModel extends AbstractTableModel {
         return columnNames.get(column);
     }
 
-
+    /**
+     * Sets a value in the model for a given row/column.
+     *
+     * @param aValue      value to assign to cell
+     * @param rowIndex    row of cell
+     * @param columnIndex column of cell
+     */
+    @Override
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+        super.setValueAt(aValue, rowIndex, columnIndex);
+    }
 }

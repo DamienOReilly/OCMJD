@@ -1,6 +1,7 @@
 package suncertify.db;
 
 import java.io.FileNotFoundException;
+import java.util.logging.Logger;
 
 /**
  * This class implements {@link suncertify.db.DB} and provides methods to read, update and delete records in the
@@ -22,6 +23,11 @@ public class Data implements DB {
     private final DatabaseLockHandler databaseLockHandler;
 
     /**
+     * Logger instance.
+     */
+    private Logger logger = Logger.getLogger("suncertify.db");
+
+    /**
      * Constructor that takes in a tring location to the database file on disk.
      *
      * @param databasePath Path to the database file on disk.
@@ -33,6 +39,7 @@ public class Data implements DB {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        setupShutdownHook();
     }
 
     /**
@@ -101,9 +108,22 @@ public class Data implements DB {
     }
 
     /**
-     * Close the file handler to the database.
+     * Close the file handler to the database. Public to assist Unit tests.
      */
     public void close() {
-        database.close();
+        if (database != null) {
+            database.close();
+        }
+    }
+
+    /**
+     * Setup a hook to cleanly close the database file handler before the VM terminates.
+     */
+    private void setupShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                close();
+            }
+        });
     }
 }

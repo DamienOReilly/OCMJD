@@ -5,6 +5,7 @@ import suncertify.common.Constants;
 import suncertify.utils.PropertiesManager;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
@@ -57,6 +58,7 @@ public class ConfigurationDialog {
         dialog.setLocationRelativeTo(null);
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        dialog.getRootPane().setBorder(new EmptyBorder(5, 5, 5, 5));
         dialog.setLayout(new GridBagLayout());
 
         gbc.insets = new Insets(2, 2, 2, 2);
@@ -64,7 +66,7 @@ public class ConfigurationDialog {
         if ((mode == ApplicationMode.ALONE) || (mode == ApplicationMode.SERVER)) {
             getDatabasePanel();
         }
-        if ((mode == ApplicationMode.NETWORK) || (mode == ApplicationMode.SERVER)) {
+        if (mode == ApplicationMode.NETWORK) {
             getNetworkPanel();
         }
         getNavigationPanel();
@@ -99,6 +101,8 @@ public class ConfigurationDialog {
         gbc.gridy = rowCount;
         dialog.add(selectFileButton, gbc);
 
+        gbc.fill = GridBagConstraints.NONE;
+
         rowCount++;
     }
 
@@ -107,15 +111,7 @@ public class ConfigurationDialog {
         hostnameField.setText(propertiesManager.getProperty("hostname", "localhost"));
         hostnameField.setToolTipText("Hostname of the server running the database.");
 
-//        JLabel portLabel = new JLabel("Port:");
-//        JTextField portField = new JTextField(6);
-//        portField.setToolTipText("Post the server is listening on.");
-//        portField.setText(propertiesManager.getProperty("port", String.valueOf(Registry.REGISTRY_PORT)));
-//        PlainDocument doc = (PlainDocument) portField.getDocument();
-//        doc.setDocumentFilter(new NumericDocumentFilter());
-
         gbc.anchor = GridBagConstraints.NORTHWEST;
-
         gbc.gridx = 0;
         gbc.gridy = rowCount;
         dialog.add(hostnameLabel, gbc);
@@ -123,19 +119,10 @@ public class ConfigurationDialog {
         gbc.gridx = 1;
         gbc.gridy = rowCount;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = 2;
         dialog.add(hostnameField, gbc);
 
-//        rowCount++;
-//
-//        gbc.gridx = 0;
-//        gbc.gridy = rowCount;
-//        dialog.add(portLabel, gbc);
-//
-//        gbc.gridx = 1;
-//        gbc.gridy = rowCount;
-//        gbc.fill = GridBagConstraints.HORIZONTAL;
-//        dialog.add(portField, gbc);
-
+        gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.NONE;
 
         rowCount++;
@@ -152,15 +139,17 @@ public class ConfigurationDialog {
         okButton.setMnemonic(KeyEvent.VK_O);
         okButton.setToolTipText("Accept configuration and start.");
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+
         panel.add(cancelButton, gbc);
         panel.add(okButton, gbc);
 
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-
+        gbc.anchor = GridBagConstraints.SOUTHEAST;
         gbc.gridx = 2;
         gbc.gridy = rowCount;
         dialog.add(panel, gbc);
+
+        gbc.fill = GridBagConstraints.NONE;
 
         rowCount++;
     }
@@ -207,7 +196,7 @@ public class ConfigurationDialog {
         if ((mode == ApplicationMode.ALONE) || (mode == ApplicationMode.SERVER)) {
             propertiesManager.setProperty("dbpath", databasePath.getText());
         }
-        if ((mode == ApplicationMode.NETWORK) || (mode == ApplicationMode.SERVER)) {
+        if (mode == ApplicationMode.NETWORK) {
             propertiesManager.setProperty("hostname", hostnameField.getText());
         }
     }

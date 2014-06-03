@@ -2,6 +2,7 @@ package suncertify.application;
 
 import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
+import suncertify.db.SecurityException;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -13,9 +14,10 @@ import java.util.List;
  */
 public interface ContractorService {
 
-    public void bookContractor(Contractor contractor, String customerId) throws RecordNotFoundException,
-            suncertify.db.SecurityException, RemoteException;
+    public void bookContractor(Contractor contractor) throws ContractorUnavailableException, RemoteException,
+            RecordNotFoundException, suncertify.db.SecurityException;
 
     public List<Contractor> search(String[] criteria) throws RemoteException;
 
+    void unbookContractor(Contractor contractor) throws RemoteException, RecordNotFoundException, SecurityException;
 }

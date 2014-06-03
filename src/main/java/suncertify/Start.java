@@ -3,51 +3,58 @@ package suncertify;
 import suncertify.application.ApplicationMode;
 import suncertify.application.ContractorService;
 import suncertify.application.ServiceFactory;
-import suncertify.ui.ClientController;
-import suncertify.ui.ClientFrame;
-import suncertify.ui.ClientModel;
-import suncertify.ui.ConfigurationDialog;
+import suncertify.ui.*;
+import suncertify.utils.MsgBox;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Damien O'Reilly
  */
 public class Start {
 
+    /**
+     * Logger instance.
+     */
+    private static Logger logger = Logger.getLogger("suncertify");
+
     public static void main(String[] args) {
 
+        ApplicationMode mode = null;
+
         if (args.length == 0) {
-
-        } else if (args[0].equalsIgnoreCase(ApplicationMode.ALONE.name())) {
-
-            try {
-                ConfigurationDialog configurationDialog = new ConfigurationDialog(ApplicationMode.ALONE);
-                configurationDialog.init();
-
-                ContractorService service = ServiceFactory.getService(ApplicationMode.ALONE);
-
-                ClientModel model = new ClientModel(service);
-                ClientFrame view = new ClientFrame(service);
-                ClientController controller = new ClientController(model, view);
-
-                view.init();
-
-            } catch (RemoteException e) {
-                //TODO
-                e.printStackTrace();
-            } catch (NotBoundException e) {
-                //TODO
-                e.printStackTrace();
-            }
-
-        } else if (args[1].equalsIgnoreCase(ApplicationMode.SERVER.name())) {
-
+            mode = ApplicationMode.NETWORK;
+        } else if (args[0].equals("alone")) {
+            mode = ApplicationMode.ALONE;
+        } else if (args[0].equals("server")) {
+            mode = ApplicationMode.SERVER;
         } else {
             printHelp(args);
             System.exit(0);
+        }
+
+        if (mode == ApplicationMode.NETWORK || mode == ApplicationMode.ALONE) {
+            ConfigurationDialog configurationDialog = new ConfigurationDialog(mode);
+            configurationDialog.init();
+
+            try {
+                ContractorService service = ServiceFactory.getService(mode);
+                ClientModel model = new ClientModel(service);
+                ClientFrame view = new ClientFrame(service);
+                ClientController controller = new ClientController(model, view);
+                view.init();
+            } catch (RemoteException | NotBoundException e) {
+                logger.log(Level.SEVERE, e.getMessage(), e);
+                MsgBox.showErrorAndExit(e.getMessage());
+            }
+        } else if (mode == ApplicationMode.SERVER) {
+            ConfigurationDialog configurationDialog = new ConfigurationDialog(ApplicationMode.SERVER);
+            configurationDialog.init();
+            ServerFrame view = new ServerFrame();
         }
     }
 

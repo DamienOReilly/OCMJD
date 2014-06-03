@@ -44,7 +44,7 @@ class DatabaseIO {
     /**
      * Logger instance.
      */
-    private Logger logger = Logger.getLogger("suncertify.db");
+    private static Logger logger = Logger.getLogger("suncertify.db");
 
     /**
      * Constructor that take in database file location and parses the metadata and available records.
@@ -211,14 +211,16 @@ class DatabaseIO {
     }
 
     /**
-     * Closes the database.
+     * Closes the database file handler.
      */
     public void close() {
-        try {
-            database.close();
-        } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
+        if (database != null) {
+            try {
+                database.close();
+            } catch (IOException e) {
+                //TODO: log
+                e.printStackTrace();
+            }
         }
     }
 

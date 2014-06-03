@@ -1,5 +1,6 @@
 package suncertify.remote;
 
+import suncertify.utils.MsgBox;
 import suncertify.utils.PropertiesManager;
 
 import java.rmi.RemoteException;
@@ -38,8 +39,8 @@ public class Server {
                 logger.log(Level.INFO, "Server has been started. Listening on port: " + Registry.REGISTRY_PORT);
                 started = true;
             } catch (RemoteException e) {
-                //TODO: error, cannot start server.
                 logger.log(Level.SEVERE, e.getMessage(), e);
+                MsgBox.showErrorAndExit(e.getMessage());
             }
         }
     }
