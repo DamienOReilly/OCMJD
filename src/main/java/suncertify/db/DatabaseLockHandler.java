@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
 
 /**
  * This class provides a locking mechanism in order to ensure transactional safety per record in the database.
@@ -18,11 +17,6 @@ class DatabaseLockHandler {
      * Hash Map containing records and their locks.
      */
     private final Map<Integer, Long> locks = new HashMap<>();
-
-    /**
-     * Logger instance.
-     */
-    private Logger logger = Logger.getLogger("suncertify.db");
 
     /**
      * Provides synchronized access to the mapLock cookie map.

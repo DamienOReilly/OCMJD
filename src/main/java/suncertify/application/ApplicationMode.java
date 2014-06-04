@@ -1,6 +1,8 @@
 package suncertify.application;
 
 /**
+ * Enum to distinguish application launch modes.
+ *
  * @author Damien O'Reilly
  */
 public enum ApplicationMode {
@@ -18,6 +20,6 @@ public enum ApplicationMode {
     /**
      * The network client mode.
      */
-    NETWORK;
+    NETWORK
 
 }

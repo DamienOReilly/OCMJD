@@ -11,6 +11,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This class acts as a factory and provides either a local or remote instance on a
+ * {@link suncertify.application.ContractorService} depending on application launch mode.
+ *
  * @author Damien O'Reilly
  */
 public class ServiceFactory {
@@ -20,11 +23,22 @@ public class ServiceFactory {
      */
     private static Logger logger = Logger.getLogger("suncertify.application");
 
+    /**
+     * Private to prevent class instantiation.
+     */
     private ServiceFactory() {
     }
 
+    /**
+     * Gets a {@link suncertify.application.ContractorService} based on specified application launch mode.
+     *
+     * @param mode Application launch mode.
+     * @return A local or remote {@code ContractorService}
+     * @throws RemoteException   Problem contacting the server.
+     * @throws NotBoundException Problem contacting the server.
+     */
     public static ContractorService getService(ApplicationMode mode) throws RemoteException, NotBoundException {
-        ContractorService contractorService = null;
+        ContractorService contractorService;
         switch (mode) {
             case NETWORK:
                 logger.log(Level.INFO, "Creating remote ContractorService.");
@@ -41,11 +55,23 @@ public class ServiceFactory {
         return contractorService;
     }
 
+    /**
+     * Returns a local service.
+     *
+     * @return Local service.
+     */
     private static ContractorService getContractorService() {
         String dbPath = PropertiesManager.getInstance().getProperty("dbpath");
         return new ContractorServiceImpl(dbPath);
     }
 
+    /**
+     * Returns a remote service.
+     *
+     * @return Remote service.
+     * @throws RemoteException   Problem contacting the server.
+     * @throws NotBoundException Problem contacting the server.
+     */
     private static ContractorService getRemoteContractorService() throws RemoteException, NotBoundException {
         String hostname = PropertiesManager.getInstance().getProperty("hostname");
         int port = Registry.REGISTRY_PORT;

@@ -4,7 +4,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -22,11 +21,7 @@ public class DatabaseIOTest {
     @Before
     public void setUp() {
         databaseLockHandler = new DatabaseLockHandler();
-        try {
-            databaseIO = new DatabaseIO("db-2x2.db", databaseLockHandler);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        databaseIO = new DatabaseIO("db-2x2.db", databaseLockHandler);
     }
 
     @Test

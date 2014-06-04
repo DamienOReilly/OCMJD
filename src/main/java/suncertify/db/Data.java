@@ -1,8 +1,5 @@
 package suncertify.db;
 
-import java.io.FileNotFoundException;
-import java.util.logging.Logger;
-
 /**
  * This class implements {@link suncertify.db.DB} and provides methods to read, update and delete records in the
  * database.
@@ -13,7 +10,7 @@ public class Data implements DB {
 
     /**
      * Class that deals with low level access to the database. This will keep this class simplified by delegating all
-     * work to the DatbseIO class.
+     * work to the DatabaseIO class.
      */
     private DatabaseIO database;
 
@@ -23,22 +20,13 @@ public class Data implements DB {
     private final DatabaseLockHandler databaseLockHandler;
 
     /**
-     * Logger instance.
-     */
-    private Logger logger = Logger.getLogger("suncertify.db");
-
-    /**
-     * Constructor that takes in a tring location to the database file on disk.
+     * Constructor that takes in a String location to the database file on disk.
      *
      * @param databasePath Path to the database file on disk.
      */
     public Data(String databasePath) {
         databaseLockHandler = new DatabaseLockHandler();
-        try {
-            database = new DatabaseIO(databasePath, databaseLockHandler);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        database = new DatabaseIO(databasePath, databaseLockHandler);
         setupShutdownHook();
     }
 

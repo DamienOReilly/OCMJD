@@ -27,7 +27,7 @@ public class ClientModel {
     }
 
     public void unbookContractor(Contractor contractor) throws suncertify.db.SecurityException,
-            RemoteException, RecordNotFoundException, ContractorUnavailableException {
+            RemoteException, RecordNotFoundException {
         contractor.setOwner("");
         service.unbookContractor(contractor);
     }

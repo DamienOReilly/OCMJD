@@ -1,7 +1,9 @@
 package suncertify.db;
 
+import suncertify.utils.MsgBox;
 import suncertify.utils.Utils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -10,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -50,14 +53,26 @@ class DatabaseIO {
      * Constructor that take in database file location and parses the metadata and available records.
      *
      * @param databasePath Path to the database file.
-     * @throws FileNotFoundException Database was not found.
      */
-    public DatabaseIO(String databasePath, DatabaseLockHandler databaseLockHandler) throws FileNotFoundException {
+    public DatabaseIO(String databasePath, DatabaseLockHandler databaseLockHandler) {
         this.databaseLockHandler = databaseLockHandler;
-        this.database = new RandomAccessFile(databasePath, "rw");
+
+        if (!new File(databasePath).exists()) {
+            showError("Error opening database." + databasePath);
+        }
+
+        try {
+            this.database = new RandomAccessFile(databasePath, "rw");
+        } catch (FileNotFoundException e) {
+            showError(e);
+        }
+
         if (isCompatible()) {
+            logger.log(Level.INFO, "Database " + databasePath + " is compatible.");
             parseDatabaseMetaData();
             records = loadRecords();
+        } else {
+            showError("Database " + databasePath + " is incompatible with this application.");
         }
     }
 
@@ -65,7 +80,7 @@ class DatabaseIO {
      * Reads and returns a list of records from the database as a {@link java.lang.String} array.
      * Ignores records flagged as 'deleted'.
      *
-     * @return {@link java.lang.String} array containing records in the database.
+     * @return {@code java.lang.String} array containing records in the database.
      */
     private List<String[]> loadRecords() {
 
@@ -93,11 +108,29 @@ class DatabaseIO {
                 records.add(record);
             }
         } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
+            showError(e);
         }
 
         return records;
+    }
+
+    /**
+     * Alert the user than an IO operation on the database failed and provide logging.
+     * @param e Exception that occurred.
+     */
+    private void showError(IOException e) {
+        logger.log(Level.SEVERE, "Problem reading records from the database." + e.getMessage(), e);
+        MsgBox.showErrorAndExit("Problem reading records from the database.\nSee logging for more information.");
+    }
+
+    /**
+     * Alert the user than an IO operation on the database failed and provide logging.
+     *
+     * @param message Error message.
+     */
+    private void showError(String message) {
+        logger.log(Level.SEVERE, message);
+        MsgBox.showErrorAndExit(message);
     }
 
     /**
@@ -114,8 +147,7 @@ class DatabaseIO {
                 return true;
             }
         } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
+            showError(e);
         }
         return false;
     }
@@ -143,8 +175,7 @@ class DatabaseIO {
             }
 
         } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
+            showError(e);
         }
 
     }
@@ -218,8 +249,7 @@ class DatabaseIO {
             try {
                 database.close();
             } catch (IOException e) {
-                //TODO: log
-                e.printStackTrace();
+                logger.log(Level.SEVERE, e.getMessage(), e);
             }
         }
     }
@@ -347,7 +377,7 @@ class DatabaseIO {
             validateNewRecord(data);
             long position = getOffsetForNewRecord();
             if (position == 0) {
-                //TODO: Cannot determine offset to insert new record.
+                showError("Cannot determine offset to write new record.");
             }
 
             write(data, position);
@@ -363,8 +393,7 @@ class DatabaseIO {
             }
 
         } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
+            showError(e);
         } finally {
             dbWriteLock.unlock();
         }
@@ -393,9 +422,7 @@ class DatabaseIO {
             records.set(recNo, new String[DatabaseSchema.NUMBER_OF_FIELDS]);
 
         } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
-            throw new RecordNotFoundException("Could not delete record " + recNo + ". " + e.getLocalizedMessage());
+            showError(e);
         } finally {
             dbWriteLock.unlock();
         }
@@ -421,8 +448,7 @@ class DatabaseIO {
             write(data, position);
             records.set(recNo, data);
         } catch (IOException e) {
-            //TODO: log
-            e.printStackTrace();
+            showError(e);
         } finally {
             dbWriteLock.unlock();
         }

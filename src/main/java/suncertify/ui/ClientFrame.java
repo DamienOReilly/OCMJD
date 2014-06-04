@@ -150,6 +150,8 @@ public class ClientFrame {
 
     public void addSearchListener(ActionListener searchListener) {
         searchButton.addActionListener(searchListener);
+        nameField.addActionListener(searchListener);
+        locationField.addActionListener(searchListener);
     }
 
     public void addRefreshListener(ActionListener refreshListener) {
