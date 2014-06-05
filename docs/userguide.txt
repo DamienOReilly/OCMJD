@@ -5,22 +5,150 @@ Table of Contents
 -----------------
 1. Overview
 2. Prerequisites
+3. Running the application
+    a. Launching the server
+    b. Launching the network client
+    c. Launching the stand-alone mode
+4. Using the server
+    a. Configuring
+    b. Using the server
+5. Using the network client
+    a. Configuring
+    b. Using the network client
+6. Using the stand-alone mode
+    a. Configuring
+    b. Using the stand-alone
+7. Using the client GUI
+    a. Booking a contractor
+    b. Un-booking a contractor
+    c. Refreshing the contractor list
+    d. Searching for a contractor
+8. Troubleshooting
 
 
 1. Overview
 -----------
-
-  This application is to assist customer service representatives (CSRs) with booking contractors
-  for their customers. It allows the CSRs to view the list of contractors, as well as book and
-  un-book contractors for a given customer.
+  This application is to assist customer service representatives (CSRs) with booking contractors for their customers.
+  It allows the CSRs to view the list of contractors, as well as book and un-book contractors for a given customer an
+  also to search for contractors based on certain criteria.
 
 
 2. Prerequisites
 ----------------
-
-  You must first have the Java Runtime Environment installed on your computer. At least version 7
-  is required. This can be downloaded from Oracle's website.
-
+  The user must first have the Java Runtime Environment installed on their computer. At least version 7 is required.
+  This can be downloaded from Oracle's website.
 
 
-3.
+3. Running the application
+---------------------------
+  The application is typically run from command line, passing different arguments to launch the application in
+  different modes.
+
+  a. Launching the server
+        java -jar runme.jar server
+
+  b. Launching the network client
+        java -jar runme.jar (no args)
+
+  c. Launching the stand-alone mode
+        java -jar runme.jar alone
+
+
+4. Using the server
+-------------------
+  The server accepts incoming connections from clients and allows them to interact with the database. Upon launching the
+  server, the user is asked to select a database file to work with.
+
+   a. Configuring
+        Before the server will listen for incoming connections, the user has to select a compatible database to work
+        with first. Click "Select file..." button an navigate to where the database is located. Click "OK" when done to
+        open the server main GUI. Note, the database location is persisted for future launches of the server, but the
+        user still will have the option to change the saved database location next time the application is launched.
+
+   b. Using the server
+        On the main server GUI, click the "Start" button to start the server and listen for incoming connections.
+
+        If the user wishes to stop the server, they can click the "Shutdown" server to stop listening for clients and
+        exit the application.
+
+
+5. Using the network client
+-------------------
+  The network client allows a user to interact with a remote database. The client can perform various operations on a
+  list of contractors in the database. Upon launching the network client, the user is asked to enter the hostname that
+  the server is listening on.
+
+    a. Configuring
+         Before using the network client, the user must enter the hostname that the server is listening on. Click on OK
+         to connect to the server and launch the client GUI. Note, the hostname is persisted for future launches of the
+         network client, but the user still has the option to change the saved hostname next time the application
+         launches.
+
+    b. Using the network client
+         The network client will contact the server to communicate with the database. When communication is established,
+         the client GUI will launch. For instructions on using the client GUI, please see "7. Using the client GUI".
+
+  Note: the network client must have a running server it can connect to.
+
+
+6. Using the stand-alone mode
+-----------------------------
+  The stand-alone mode allows the user to use the database and client as one process without the need for a network.
+  Only one virtual machine is used. Other clients won't be able to connect to this process.
+
+    a. Configuring
+       Before using the stand-alone mode, the user has to select a compatible database to work with first. Click
+       "Select file..." button an navigate to where the database is located. Click "OK" when done to open the
+       stand-alone mode. Note, the database location is persisted for future launches of the stand-alone mode, but the
+       user still has the option to change this location next time the application launches.
+
+    b. Using the stand-alone mode
+       The stand-alone mode from this point acts like the client GUI in the network mode. The functionality is
+       identical. For instructions on using the client GUI, please see "7. Using the client GUI".
+
+
+7. Using the client GUI
+-----------------------
+  The client GUI allows the user to interact with the database via interactive components.
+
+  The client GUI consists of 3 main areas.
+   - The search panel at the top of the GUI.
+   - The contractor list panel in the center of the GUI.
+   - The actions panel at the bottom of the GUI.
+
+   When the GUI launches, the user will be presented with a list of all contractors in the database and their associated
+   details.
+
+     a. Booking a contractor
+          To book a contractor, click on a contractor of choice. If the contractor is available for booking, the "Book"
+          button will become enabled. The user will then be asked to input a customer id for the booking. The customer
+          id must consist of 8 digits only. If the user submits an invalid customer id, they will receive a warning
+          message box stating so. If the booking was successful, the record in the table on the GUI will be reflected to
+          show the booking. If another client booked the record or the record no longer exists since the user started
+          the booking request, they will be alerted to this, and the record list will be automatically refreshed.
+
+     b. Un-booking a contractor
+          To un-book a contractor, click on a contractor of choice. If the contractor is already booked, the "Un-Book"
+          button will become enabled. If the un-booking was successful, the record in the table on the GUI will be
+          reflected to show the un-booking. If another client un-booked the record or the record no longer exists since
+          the user started the un-booking request, they will be alerted to this, and the record list will be
+          automatically refreshed.
+
+     c. Refreshing the contractor list
+          To refresh the contractor list and get the latest state of contractors at any time, the user can click the
+          "Refresh" button.
+
+     d. Searching for a contractor
+          The user can search for a contractor by specifying a name or a location or both. Note, search results are
+          based on an exact match. If the user enters a name, or a location or both to search on, they can either click
+          the "Search" button or press enter to perform the search. If there are many matches, the matching contractors
+          will be shown in the contractor list. If there are no matches, the list will be empty. The user can clear the
+          search results by clicking on the "Refresh" button.
+
+
+8. Troubleshooting
+------------------
+  If any errors occur while using the server, network client or stand-alone mode, the user will be showing an error
+  message detailing the error. Depending on the severity of the error, they user may be able to continue using the
+  application, or the application may terminate if it can no longer run. Logging will be outputted to the terminal that
+  the application was launched from, for further information when such problems exist.
