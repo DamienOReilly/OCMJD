@@ -3,7 +3,6 @@ package suncertify.application;
 import suncertify.db.DB;
 import suncertify.db.DatabaseFactory;
 import suncertify.db.RecordNotFoundException;
-import suncertify.db.SecurityException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +27,7 @@ public class ContractorServiceImpl implements ContractorService {
      * {@inheritDoc}
      */
     @Override
-    public void bookContractor(Contractor contractor) throws RecordNotFoundException, SecurityException,
+    public void bookContractor(Contractor contractor) throws RecordNotFoundException,
             ContractorUnavailableException {
 
         if (alreadyBooked(contractor)) {
@@ -42,7 +41,7 @@ public class ContractorServiceImpl implements ContractorService {
      * {@inheritDoc}
      */
     @Override
-    public void unbookContractor(Contractor contractor) throws RecordNotFoundException, SecurityException {
+    public void unbookContractor(Contractor contractor) throws RecordNotFoundException {
         updateRecord(contractor);
 
     }
@@ -81,7 +80,7 @@ public class ContractorServiceImpl implements ContractorService {
     /**
      * {@inheritDoc}
      */
-    private void updateRecord(Contractor contractor) throws RecordNotFoundException, SecurityException {
+    private void updateRecord(Contractor contractor) throws RecordNotFoundException {
         long lockCookie = 0;
         try {
             lockCookie = database.lock(contractor.getRecordId());

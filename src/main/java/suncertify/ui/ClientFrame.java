@@ -110,6 +110,7 @@ public class ClientFrame {
         searchButton.setMnemonic(KeyEvent.VK_S);
         searchButton.setToolTipText("Search the database based on the input criteria.");
         nameField.setToolTipText("Exact name to search for.");
+        locationField.setToolTipText("Exact location to search for.");
         refreshButton.setMnemonic(KeyEvent.VK_R);
         refreshButton.setToolTipText("Retrieve up to date records from database.");
 

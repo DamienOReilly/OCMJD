@@ -5,7 +5,7 @@ package suncertify.db;
  *
  * @author Damien O'Reilly
  */
-public class SecurityException extends Exception {
+public class SecurityException extends RuntimeException {
 
     /**
      * Constructs a SecurityException with no message.

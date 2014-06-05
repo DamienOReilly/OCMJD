@@ -141,7 +141,7 @@ public class ConcurrencyTest {
             } finally {
                 try {
                     data.unlock(recNo, cookie);
-                } catch (RecordNotFoundException | SecurityException e) {
+                } catch (RecordNotFoundException e) {
                     e.printStackTrace();
                 }
             }
@@ -179,7 +179,7 @@ public class ConcurrencyTest {
             } finally {
                 try {
                     data.unlock(1, cookie);
-                } catch (RecordNotFoundException | SecurityException e) {
+                } catch (RecordNotFoundException e) {
                     e.printStackTrace();
                 }
             }
@@ -226,7 +226,7 @@ public class ConcurrencyTest {
             } finally {
                 try {
                     data.unlock(1, cookie);
-                } catch (RecordNotFoundException | SecurityException e) {
+                } catch (RecordNotFoundException e) {
                     e.printStackTrace();
                 }
             }

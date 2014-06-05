@@ -70,7 +70,7 @@ class Start {
         System.err.println("Invalid parameters: " + Arrays.toString(args));
         System.err.println("Usage: ");
         System.err.println("java -jar runme.jar server\t- server");
-        System.err.println("java -jar runme.jar alone\t- non-networked client");
-        System.err.println("java -jar runme.jar (no args)\t- client");
+        System.err.println("java -jar runme.jar alone\t- stand-alone mode");
+        System.err.println("java -jar runme.jar (no args)\t- network client");
     }
 }

@@ -1,7 +1,6 @@
 package suncertify.application;
 
 import suncertify.db.RecordNotFoundException;
-import suncertify.db.SecurityException;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -20,10 +19,9 @@ public interface ContractorService {
      * @throws ContractorUnavailableException  The contractor is already booked.
      * @throws RemoteException                 Problem communicating with the server.
      * @throws RecordNotFoundException         The requested record was not found.
-     * @throws suncertify.db.SecurityException Security Exception e.g. invalid/stale cookie.
      */
     public void bookContractor(Contractor contractor) throws ContractorUnavailableException, RemoteException,
-            RecordNotFoundException, suncertify.db.SecurityException;
+            RecordNotFoundException;
 
     /**
      * Allows a contractor to be un-booked.
@@ -31,9 +29,8 @@ public interface ContractorService {
      * @param contractor Contractor to un-book.
      * @throws RemoteException         RemoteException Problem communicating with the server.
      * @throws RecordNotFoundException The requested record was not found.
-     * @throws SecurityException       Security Exception e.g. invalid/stale cookie.
      */
-    void unbookContractor(Contractor contractor) throws RemoteException, RecordNotFoundException, SecurityException;
+    void unbookContractor(Contractor contractor) throws RemoteException, RecordNotFoundException;
 
     /**
      * Searches for contractors based on a given criteria.

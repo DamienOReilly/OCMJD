@@ -35,13 +35,12 @@ public class ClientModel {
      *
      * @param contractor Contractor to book.
      * @param customerId Customer ID to book against.
-     * @throws suncertify.db.SecurityException Problem booking contractor.
      * @throws RemoteException                 Problem communicating with the server.
      * @throws RecordNotFoundException         Record doesn't exist.
      * @throws ContractorUnavailableException  Contractor is already booked.
      */
-    public void bookContractor(Contractor contractor, String customerId) throws suncertify.db.SecurityException,
-            RemoteException, RecordNotFoundException, ContractorUnavailableException {
+    public void bookContractor(Contractor contractor, String customerId) throws RemoteException,
+            RecordNotFoundException, ContractorUnavailableException {
         contractor.setOwner(customerId);
         service.bookContractor(contractor);
     }
@@ -50,12 +49,10 @@ public class ClientModel {
      * Allows a particular contractor to be un-booked.
      *
      * @param contractor Contractor to un-book.
-     * @throws suncertify.db.SecurityException Problem booking contractor.
      * @throws RemoteException                 Problem communicating with the server.
      * @throws RecordNotFoundException         Record doesn't exist.
      */
-    public void unbookContractor(Contractor contractor) throws suncertify.db.SecurityException,
-            RemoteException, RecordNotFoundException {
+    public void unbookContractor(Contractor contractor) throws RemoteException, RecordNotFoundException {
         contractor.setOwner("");
         service.unbookContractor(contractor);
     }

@@ -3,7 +3,6 @@ package suncertify.ui;
 import suncertify.application.Contractor;
 import suncertify.application.ContractorUnavailableException;
 import suncertify.db.RecordNotFoundException;
-import suncertify.db.SecurityException;
 import suncertify.utils.MsgBox;
 
 import javax.swing.*;
@@ -149,8 +148,6 @@ public class ClientController {
                     try {
                         model.bookContractor(contractor, customerId);
                         view.getTableModel().fireTableRowsUpdated(row, row);
-                    } catch (SecurityException ex) {
-                        showWarning(ex);
                     } catch (ContractorUnavailableException | RecordNotFoundException ex) {
                         showWarning(ex);
                         try {
@@ -185,8 +182,6 @@ public class ClientController {
                 view.getTableModel().fireTableRowsUpdated(row, row);
             } catch (RemoteException ex) {
                 showError(ex);
-            } catch (SecurityException ex) {
-                showWarning(ex);
             } catch (RecordNotFoundException ex) {
                 showWarning(ex);
                 try {
