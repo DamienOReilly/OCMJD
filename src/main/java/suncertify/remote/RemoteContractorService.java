@@ -1,7 +1,7 @@
 package suncertify.remote;
 
 import suncertify.application.ContractorService;
-import suncertify.common.Constants;
+import suncertify.utils.Constants;
 
 import java.rmi.Remote;
 

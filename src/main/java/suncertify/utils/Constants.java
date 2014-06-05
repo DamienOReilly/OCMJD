@@ -1,4 +1,4 @@
-package suncertify.common;
+package suncertify.utils;
 
 /**
  * Class to hold constants common to the overall application.

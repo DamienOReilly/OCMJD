@@ -5,7 +5,7 @@ package suncertify.db;
  *
  * @author Damien O'Reilly
  */
-public class Field {
+class Field {
 
     /**
      * Name of the field.

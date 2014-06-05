@@ -12,7 +12,7 @@ public class Data implements DB {
      * Class that deals with low level access to the database. This will keep this class simplified by delegating all
      * work to the DatabaseIO class.
      */
-    private DatabaseIO database;
+    private final DatabaseIO database;
 
     /**
      * Lock Handler for transactional safety.
@@ -98,10 +98,8 @@ public class Data implements DB {
     /**
      * Close the file handler to the database. Public to assist Unit tests.
      */
-    public void close() {
-        if (database != null) {
-            database.close();
-        }
+    void close() {
+        database.close();
     }
 
     /**

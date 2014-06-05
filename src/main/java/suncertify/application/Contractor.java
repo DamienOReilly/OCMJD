@@ -1,4 +1,4 @@
-package suncertify.common;
+package suncertify.application;
 
 import java.io.Serializable;
 

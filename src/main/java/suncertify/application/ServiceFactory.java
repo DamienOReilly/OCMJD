@@ -21,7 +21,7 @@ public class ServiceFactory {
     /**
      * Logger instance.
      */
-    private static Logger logger = Logger.getLogger("suncertify.application");
+    private static final Logger logger = Logger.getLogger("suncertify.application");
 
     /**
      * Private to prevent class instantiation.

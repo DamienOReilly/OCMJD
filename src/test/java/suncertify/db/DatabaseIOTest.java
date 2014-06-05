@@ -15,12 +15,11 @@ import static org.junit.Assert.assertEquals;
 public class DatabaseIOTest {
 
     private DatabaseIO databaseIO;
-    private DatabaseLockHandler databaseLockHandler;
 
 
     @Before
     public void setUp() {
-        databaseLockHandler = new DatabaseLockHandler();
+        DatabaseLockHandler databaseLockHandler = new DatabaseLockHandler();
         databaseIO = new DatabaseIO("db-2x2.db", databaseLockHandler);
     }
 

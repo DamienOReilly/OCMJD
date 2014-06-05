@@ -13,15 +13,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This is the main class of the application. It parses arguments passed on command line to determine the
+ * different launch modes.
+ *
  * @author Damien O'Reilly
  */
-public class Start {
+class Start {
 
     /**
      * Logger instance.
      */
-    private static Logger logger = Logger.getLogger("suncertify");
+    private static final Logger logger = Logger.getLogger("suncertify");
 
+    /**
+     * Entry point to the application.
+     *
+     * @param args Mode to determine how the application is launched.
+     */
     public static void main(String[] args) {
 
         ApplicationMode mode = null;
@@ -44,14 +52,14 @@ public class Start {
             try {
                 ContractorService service = ServiceFactory.getService(mode);
                 ClientModel model = new ClientModel(service);
-                ClientFrame view = new ClientFrame(service);
+                ClientFrame view = new ClientFrame(model);
                 ClientController controller = new ClientController(model, view);
                 view.init();
             } catch (RemoteException | NotBoundException e) {
                 logger.log(Level.SEVERE, e.getMessage(), e);
                 MsgBox.showErrorAndExit(e.getMessage());
             }
-        } else if (mode == ApplicationMode.SERVER) {
+        } else {
             ConfigurationDialog configurationDialog = new ConfigurationDialog(ApplicationMode.SERVER);
             configurationDialog.init();
             ServerFrame view = new ServerFrame();
@@ -59,11 +67,10 @@ public class Start {
     }
 
     private static void printHelp(String[] args) {
-        System.err.println("Invalid parameter(s): "
-                + Arrays.toString(args));
+        System.err.println("Invalid parameters: " + Arrays.toString(args));
         System.err.println("Usage: ");
-        System.err.println("java -jar runme.jar \"server\" - server");
-        System.err.println("java -jar runme.jar \"alone\"  - non-networked client");
-        System.err.println("java -jar runme.jar            - client");
+        System.err.println("java -jar runme.jar server\t- server");
+        System.err.println("java -jar runme.jar alone\t- non-networked client");
+        System.err.println("java -jar runme.jar (no args)\t- client");
     }
 }

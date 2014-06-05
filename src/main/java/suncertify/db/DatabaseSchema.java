@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @author Damien O'Reilly
  */
-public class DatabaseSchema {
+class DatabaseSchema {
 
     /**
      * Magic to identify a compatible database with this application.

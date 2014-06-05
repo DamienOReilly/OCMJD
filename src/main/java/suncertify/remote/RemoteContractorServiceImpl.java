@@ -7,7 +7,7 @@ import suncertify.application.ContractorServiceImpl;
  *
  * @author Damien O'Reilly
  */
-public class RemoteContractorServiceImpl extends ContractorServiceImpl implements RemoteContractorService {
+class RemoteContractorServiceImpl extends ContractorServiceImpl implements RemoteContractorService {
 
     /**
      * Constructor taking in database file location.

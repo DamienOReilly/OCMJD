@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import suncertify.BaseTest;
-import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
 
 import java.rmi.RemoteException;

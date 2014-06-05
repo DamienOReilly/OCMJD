@@ -1,7 +1,7 @@
 package suncertify.ui;
 
+import suncertify.application.Contractor;
 import suncertify.application.ContractorUnavailableException;
-import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
 import suncertify.db.SecurityException;
 import suncertify.utils.MsgBox;
@@ -28,13 +28,13 @@ public class ClientController {
     /**
      * Client model and view instances.
      */
-    private ClientModel model;
-    private ClientFrame view;
+    private final ClientModel model;
+    private final ClientFrame view;
 
     /**
      * Logger instance.
      */
-    private static Logger logger = Logger.getLogger("suncertify.ui");
+    private static final Logger logger = Logger.getLogger("suncertify.ui");
 
     /**
      * Constructor that take in the client UI model and view. Sets up listeners for the UI components.
@@ -91,7 +91,7 @@ public class ClientController {
     /**
      * Class to handle when the user clicks Search button on the Client UI.
      */
-    class SearchListener implements ActionListener {
+    private class SearchListener implements ActionListener {
 
         /**
          * {@inheritDoc}
@@ -112,7 +112,7 @@ public class ClientController {
     /**
      * Class to handle when the user clicks the Refresh button on the Client UI.
      */
-    class RefreshListener implements ActionListener {
+    private class RefreshListener implements ActionListener {
 
         /**
          * {@inheritDoc}
@@ -131,7 +131,7 @@ public class ClientController {
     /**
      * Class to handle when the user clicks the Book button on the Client UI.
      */
-    class BookListener implements ActionListener {
+    private class BookListener implements ActionListener {
 
         /**
          * {@inheritDoc}
@@ -149,9 +149,9 @@ public class ClientController {
                     try {
                         model.bookContractor(contractor, customerId);
                         view.getTableModel().fireTableRowsUpdated(row, row);
-                    } catch (SecurityException | RecordNotFoundException ex) {
+                    } catch (SecurityException ex) {
                         showWarning(ex);
-                    } catch (ContractorUnavailableException ex) {
+                    } catch (ContractorUnavailableException | RecordNotFoundException ex) {
                         showWarning(ex);
                         try {
                             updateTable(new String[1]);
@@ -171,7 +171,7 @@ public class ClientController {
     /**
      * Class to handle when the user clicks the Un-Book button on the Client UI.
      */
-    class UnbookListener implements ActionListener {
+    private class UnbookListener implements ActionListener {
 
         /**
          * {@inheritDoc}
@@ -185,16 +185,23 @@ public class ClientController {
                 view.getTableModel().fireTableRowsUpdated(row, row);
             } catch (RemoteException ex) {
                 showError(ex);
-            } catch (SecurityException | RecordNotFoundException ex) {
+            } catch (SecurityException ex) {
                 showWarning(ex);
+            } catch (RecordNotFoundException ex) {
+                showWarning(ex);
+                try {
+                    updateTable(new String[1]);
+                } catch (RemoteException ex1) {
+                    showError(ex1);
+                }
             }
         }
     }
 
     /**
-     * Class to handle when the user clicks no a Contractor in the {@link javax.swing.JTable} on the Client UI.
+     * Class to handle when the user clicks on a Contractor in the {@link javax.swing.JTable} on the Client UI.
      */
-    class TableSelectionListener implements ListSelectionListener {
+    private class TableSelectionListener implements ListSelectionListener {
 
         /**
          * {@inheritDoc}
@@ -208,7 +215,7 @@ public class ClientController {
     /**
      * Class to handle when the {@link suncertify.ui.ContractorModel} updates.
      */
-    class TableModelUpdateListener implements TableModelListener {
+    private class TableModelUpdateListener implements TableModelListener {
 
         /**
          * {@inheritDoc}

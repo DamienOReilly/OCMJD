@@ -1,7 +1,7 @@
 package suncertify.ui;
 
 import suncertify.application.ApplicationMode;
-import suncertify.common.Constants;
+import suncertify.utils.Constants;
 import suncertify.utils.PropertiesManager;
 
 import javax.swing.*;
@@ -11,6 +11,8 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
+ * This class displays a dialog to the user asking them to input settings depending on application launch mode.
+ *
  * @author Damien O'Reilly
  */
 public class ConfigurationDialog {
@@ -20,27 +22,46 @@ public class ConfigurationDialog {
     private final PropertiesManager propertiesManager = PropertiesManager.getInstance();
 
     /**
-     * The text field for the path to the database file.
+     * Configuration text fields.
      */
     private final JTextField databasePath = new JTextField(20);
+    private final JTextField hostnameField = new JTextField(15);
 
-    JTextField hostnameField = new JTextField(15);
+    /**
+     * Instance to identify application launch mode.
+     */
+    private final ApplicationMode mode;
 
-    private ApplicationMode mode;
-
+    /**
+     * Button labels.
+     */
     private static final String CHOOSE = "Select file...";
     private static final String OK = "OK";
     private static final String EXIT = "Exit";
 
+    /**
+     * Action listener for the OK button.
+     */
     private ConfigActionListener configActionListener;
-    private GridBagConstraints gbc = new GridBagConstraints();
+
+    /**
+     * GridBagLayout constraints setup.
+     */
+    private final GridBagConstraints gbc = new GridBagConstraints();
     private int rowCount = 0;
 
-
+    /**
+     * Constructor that takes in application launch mode.
+     *
+     * @param mode Launch mode.
+     */
     public ConfigurationDialog(ApplicationMode mode) {
         this.mode = mode;
     }
 
+    /**
+     * Add components to this dialog and display it to the user.
+     */
     public void init() {
         configActionListener = new ConfigActionListener();
         dialog = new JDialog();
@@ -75,7 +96,9 @@ public class ConfigurationDialog {
         dialog.setVisible(true);
     }
 
-
+    /**
+     * Setup the database chooser panel.
+     */
     private void getDatabasePanel() {
         JLabel databasePathLabel = new JLabel("Database path:");
 
@@ -106,6 +129,9 @@ public class ConfigurationDialog {
         rowCount++;
     }
 
+    /**
+     * Setup the network configuration panel.
+     */
     private void getNetworkPanel() {
         JLabel hostnameLabel = new JLabel("Hostname:");
         hostnameField.setText(propertiesManager.getProperty("hostname", "localhost"));
@@ -128,6 +154,9 @@ public class ConfigurationDialog {
         rowCount++;
     }
 
+    /**
+     * Setup the navigation buttons panel.
+     */
     private void getNavigationPanel() {
         JButton cancelButton = new JButton(EXIT);
         cancelButton.addActionListener(configActionListener);
@@ -154,6 +183,9 @@ public class ConfigurationDialog {
         rowCount++;
     }
 
+    /**
+     * Displays a file chooser dialog to enable the user to select a database file to use.
+     */
     private void selectFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(false);
@@ -166,10 +198,20 @@ public class ConfigurationDialog {
         }
     }
 
+    /**
+     * Action Listener inner class to add functionality to the navigation buttons.
+     */
     private class ConfigActionListener implements ActionListener {
 
         /**
          * Invoked when an action occurs.
+         * <p/>
+         * <ul>
+         * <li><code>CHOOSE</code> calls {@link ConfigurationDialog#selectFile()} to select a file.</li>
+         * <li><code>OK</code> calls {@link ConfigurationDialog#persistProperties()} to persist inputted
+         * properties and open the next <code>JFrame</code></li>
+         * <li><code>EXIT</code> to exit the VM.</li>
+         * </ul>
          *
          * @param e Action
          */
@@ -192,6 +234,9 @@ public class ConfigurationDialog {
         }
     }
 
+    /**
+     * Save the user inputted settings to a persisted file.
+     */
     private void persistProperties() {
         if ((mode == ApplicationMode.ALONE) || (mode == ApplicationMode.SERVER)) {
             propertiesManager.setProperty("dbpath", databasePath.getText());
@@ -200,5 +245,4 @@ public class ConfigurationDialog {
             propertiesManager.setProperty("hostname", hostnameField.getText());
         }
     }
-
 }

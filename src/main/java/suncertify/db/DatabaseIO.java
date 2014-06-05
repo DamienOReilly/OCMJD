@@ -47,7 +47,7 @@ class DatabaseIO {
     /**
      * Logger instance.
      */
-    private static Logger logger = Logger.getLogger("suncertify.db");
+    private static final Logger logger = Logger.getLogger("suncertify.db");
 
     /**
      * Constructor that take in database file location and parses the metadata and available records.
@@ -116,6 +116,7 @@ class DatabaseIO {
 
     /**
      * Alert the user than an IO operation on the database failed and provide logging.
+     *
      * @param e Exception that occurred.
      */
     private void showError(IOException e) {

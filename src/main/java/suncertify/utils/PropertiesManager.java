@@ -1,7 +1,5 @@
 package suncertify.utils;
 
-import suncertify.common.Constants;
-
 import java.io.*;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;

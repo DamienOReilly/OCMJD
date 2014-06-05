@@ -1,0 +1,26 @@
+Bodgitt and Scarper, LLC 2.1.2 user guide
+
+
+Table of Contents
+-----------------
+1. Overview
+2. Prerequisites
+
+
+1. Overview
+-----------
+
+  This application is to assist customer service representatives (CSRs) with booking contractors
+  for their customers. It allows the CSRs to view the list of contractors, as well as book and
+  un-book contractors for a given customer.
+
+
+2. Prerequisites
+----------------
+
+  You must first have the Java Runtime Environment installed on your computer. At least version 7
+  is required. This can be downloaded from Oracle's website.
+
+
+
+3.

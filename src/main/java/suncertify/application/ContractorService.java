@@ -1,6 +1,5 @@
 package suncertify.application;
 
-import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
 import suncertify.db.SecurityException;
 

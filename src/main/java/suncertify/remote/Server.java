@@ -21,7 +21,7 @@ public class Server {
     /**
      * Logger instance.
      */
-    private static Logger logger = Logger.getLogger("suncertify.remote");
+    private static final Logger logger = Logger.getLogger("suncertify.remote");
 
     /**
      * Flag to hold whether the server has started or not.

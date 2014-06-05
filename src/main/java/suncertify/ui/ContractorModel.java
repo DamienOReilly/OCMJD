@@ -1,20 +1,32 @@
 package suncertify.ui;
 
-import suncertify.common.Contractor;
+import suncertify.application.Contractor;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class provides an {@link javax.swing.table.AbstractTableModel} to be used with the {@link javax.swing.JFrame}
+ * on the Client UI and methods for manipulating the data contained in the model.
+ *
  * @author Damien O'Reilly
  */
 public class ContractorModel extends AbstractTableModel {
 
-    private List<String> columnNames = new ArrayList<>();
+    /**
+     * List of columns for the table.
+     */
+    private final List<String> columnNames = new ArrayList<>();
 
-    private List<Contractor> contractors = new ArrayList<>();
+    /**
+     * List of {@link suncertify.application.Contractor} for the table model.
+     */
+    private final List<Contractor> contractors = new ArrayList<>();
 
+    /**
+     * Default constructor. Adds table columns to table model.
+     */
     public ContractorModel() {
         columnNames.add("Name");
         columnNames.add("Location");
@@ -24,6 +36,11 @@ public class ContractorModel extends AbstractTableModel {
         columnNames.add("Customer ID");
     }
 
+    /**
+     * Update the table model with the list of specified contractors.
+     *
+     * @param contractorList List of contractors.
+     */
     public void updateData(List<Contractor> contractorList) {
         for (Contractor contractor : contractorList) {
             contractors.add(contractor);
@@ -31,11 +48,20 @@ public class ContractorModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    /**
+     * Clear the contractors from the table model.
+     */
     public void clearData() {
         contractors.clear();
         fireTableDataChanged();
     }
 
+    /**
+     * Get the Contractor from a given row.
+     *
+     * @param row Row of the required contractor.
+     * @return Contractor.
+     */
     public Contractor getContractor(int row) {
         return contractors.get(row);
     }
@@ -94,15 +120,4 @@ public class ContractorModel extends AbstractTableModel {
         return columnNames.get(column);
     }
 
-    /**
-     * Sets a value in the model for a given row/column.
-     *
-     * @param aValue      value to assign to cell
-     * @param rowIndex    row of cell
-     * @param columnIndex column of cell
-     */
-    @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        super.setValueAt(aValue, rowIndex, columnIndex);
-    }
 }

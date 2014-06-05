@@ -1,6 +1,5 @@
 package suncertify.application;
 
-import suncertify.common.Contractor;
 import suncertify.db.DB;
 import suncertify.db.DatabaseFactory;
 import suncertify.db.RecordNotFoundException;
@@ -8,10 +7,9 @@ import suncertify.db.SecurityException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
- * Implementation of {@code ContractorService} to facilitate the business logic interaction with the database.
+ * Implementation of {@link ContractorService} to facilitate the business logic interaction with the database.
  *
  * @author Damien O'Reilly
  */
@@ -20,17 +18,11 @@ public class ContractorServiceImpl implements ContractorService {
     /**
      * Instance to database instance providing low level functions.
      */
-    protected final DB database;
-
-    /**
-     * Logger instance.
-     */
-    private Logger logger = Logger.getLogger("suncertify.application");
+    private final DB database;
 
     public ContractorServiceImpl(String databasePath) {
         database = DatabaseFactory.getDatabase(databasePath);
     }
-
 
     /**
      * {@inheritDoc}

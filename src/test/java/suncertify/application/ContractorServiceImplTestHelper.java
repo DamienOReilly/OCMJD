@@ -1,7 +1,5 @@
 package suncertify.application;
 
-import suncertify.db.Data;
-
 /**
  * @author Damien O'Reilly
  */
@@ -12,6 +10,6 @@ public class ContractorServiceImplTestHelper extends ContractorServiceImpl {
     }
 
     public void close() {
-        ((Data) database).close();
+//        ((Data) database).close();
     }
 }

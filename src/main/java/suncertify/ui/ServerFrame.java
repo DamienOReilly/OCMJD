@@ -1,7 +1,7 @@
 package suncertify.ui;
 
-import suncertify.common.Constants;
 import suncertify.remote.Server;
+import suncertify.utils.Constants;
 import suncertify.utils.PropertiesManager;
 
 import javax.swing.*;
@@ -13,16 +13,22 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 /**
+ * This class creates a {@link javax.swing.JFrame} to allow the user to start the database server.
+ *
  * @author Damien O'Reilly
  */
 public class ServerFrame {
 
+    /**
+     * Server UI components.
+     */
     private JButton shutdownButton;
-
     private JButton startButton;
-
     private JLabel statusLabel;
 
+    /**
+     * Default constructor. Sets up the frame.
+     */
     public ServerFrame() {
         JFrame serverFrame = new JFrame();
         serverFrame.setTitle(Constants.APPLICATION_NAME + " - " + Constants.APPLICATION_VERSION);
@@ -34,6 +40,11 @@ public class ServerFrame {
         serverFrame.setVisible(true);
     }
 
+    /**
+     * Build the main panel that will hold the individual panels below.
+     *
+     * @return Main panel.
+     */
     private JPanel mainPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(dbPanel(), BorderLayout.NORTH);
@@ -43,6 +54,11 @@ public class ServerFrame {
         return mainPanel;
     }
 
+    /**
+     * Build the server panel with buttons to start/stop the server.
+     *
+     * @return Server panel.
+     */
     private JPanel serverPanel() {
         JPanel panel = new JPanel();
 
@@ -67,6 +83,11 @@ public class ServerFrame {
         return panel;
     }
 
+    /**
+     * Build the database path info panel.
+     *
+     * @return Database path info panel.
+     */
     private JPanel dbPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel dbPathLabel = new JLabel("Database:");
@@ -78,6 +99,11 @@ public class ServerFrame {
         return panel;
     }
 
+    /**
+     * Build the server status panel.
+     *
+     * @return Server status panel.
+     */
     private JPanel statusPanel() {
         JPanel panel = new JPanel();
         Border inside = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
@@ -89,12 +115,12 @@ public class ServerFrame {
         return panel;
     }
 
-
+    /**
+     * Class to handle when the user clicks the stop server button on the Server UI.
+     */
     private class ShutdownListener implements ActionListener {
         /**
-         * Invoked when an action occurs.
-         *
-         * @param e
+         * {@inheritDoc}
          */
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -102,11 +128,12 @@ public class ServerFrame {
         }
     }
 
+    /**
+     * Class to handle when the user clicks the start server button on the Server UI.
+     */
     private class StartListener implements ActionListener {
         /**
-         * Invoked when an action occurs.
-         *
-         * @param e
+         * {@inheritDoc}
          */
         @Override
         public void actionPerformed(ActionEvent e) {

@@ -3,9 +3,9 @@ package suncertify;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import suncertify.application.Contractor;
 import suncertify.application.ContractorService;
 import suncertify.application.ContractorUnavailableException;
-import suncertify.common.Contractor;
 import suncertify.db.RecordNotFoundException;
 import suncertify.remote.RemoteContractorService;
 
@@ -21,12 +21,11 @@ import java.util.List;
 @Ignore
 public class ServerTest {
 
-    private Registry registry;
     private ContractorService service;
 
     @Before
     public void setUp() throws RemoteException, NotBoundException {
-        registry = LocateRegistry.getRegistry("localhost");
+        Registry registry = LocateRegistry.getRegistry("localhost");
         service = (ContractorService) registry.lookup(RemoteContractorService.SERVER_NAME);
     }
 
