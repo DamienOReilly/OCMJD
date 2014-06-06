@@ -7,3 +7,4 @@ target
 .project
 *.iml
 javadoc
+suncertify.properties

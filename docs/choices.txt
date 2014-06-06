@@ -1,1 +1,94 @@
-Decided that record id consists of name and address
+Bodgitt and Scarper, LLC 2.1.2 implementation choices.
+
+
+Table of Contents
+-----------------
+1. Code style
+2. High level architecture decisions
+3. Data layer
+4. Networking
+
+
+
+1. Code style
+-------------
+  I have tried to create very readable code. I believe I have achieved this by using using expressive names for classes,
+  methods, member variables etc. so it is more obvious to the user what the code is trying to do at first glance. I have
+  also kept methods relatively small. If a method was becoming to big, I refactored it and split it out into smaller
+  methods dedicated to a sole piece functionality. I have done the same with regards to classes to achieve a higher
+  cohesion.
+
+  I have split up the classes into different packages to group similar functionality. e.g. all GUI related classes are
+  residing in the suncertify.ui package.
+
+  I have used javadoc style comments for all classes, methods and almost all member variables. This makes code cleaner
+  to read and is more friendly for a junior programmer. In some cases where complexx code is used, I use a small comment
+  in the method to explain what is happening.
+
+
+2. High level architecture decisions
+------------------------------------
+  In order to facilitate good design practices and future ease of development, I opted to use a three-tier architecture
+  approach. This separates out the user interface, business logic and data access as independent modules which allows
+  for modules to change or upgrade in future.
+
+  The three layers I implement are:
+  - presentation tier displays visual information to the user such as contractors and their current state. It also
+    provides interactive components to interact with the business tier.
+
+  - business tier which provides processing and logic such as booking contractors.
+
+  - data access tier which is concerned with providing low level operations and persistence on the database.
+
+
+3. Data access
+-------------
+  Overview
+    My Data class implements the DB interface as per requirements of this assignment. The Data class delegates database
+    I/O operations to the DatabaseIO while it delegates lock management to the DatabaseLockHandler class. This keeps the
+    Data class small, tidy and easy to follow.
+
+  Database access
+    In the DatabaseIO class, I use RandomFileAccess over FileInputStream as in my opinion it is easier to use and was
+    more suited to this assignment.
+
+    I read in the database schema and store it the DatabaseSchema class and the Field class folds column specific
+    details. I did this rather than hard-coding the database schema, as it allows for the database schema to change
+    without major impacts to the data tier.
+
+  DuplicateKeyException
+    The requirements did not state what a duplicate key was, so I decided to use the a combination of a contractor name
+    and location is the key.
+
+  SecurityException
+    I implemented my own SecurityException rather than using the one in the java.lang package as its docs say that this
+    exception is thrown if there is a problem thrown by the security manager. Since this is not related here, I felt a
+    separate exception was suitable for this application. I left it as an un-checked exception. I do not believe
+    SecurityException should be caught and handled. If a SecurityException occurs, it indicates a security hole in
+    design, and this should be fixed, rather than handled.
+
+  Locking.
+    With regards to locking, I use a HashMap containing a record id and a cookie. A cookie is generated form current
+    system time in nano-seconds which I deemed to be sufficiently unique. This cookie is generated whenever a lock
+    request is made a against a record id and inserted into the HashMap. This cookie must be used to manipulate and
+    finally unlock a record.
+
+    Access to the HashMap is synchronized using a ReentrantLock from concurrent package. If a request comes in to lock
+    an already locked record, the current thread is left "await"ing using a Condition. The original lockee when done
+    signals all the threads waiting using a Condition also.
+
+    Further to locking, access to database IO operations are also synchronized using a Reentrantlock. This will prevent
+    multiple threads from trying to write to the databse at the same time.
+
+    I oped to use the concurrent package over "synchronized" keyword as the concurrent package was relatively new to me
+    and it was a good opportunity for experience. I do not feel it adds complexity to the project.
+
+
+
+
+
+
+
+
+SecurityException - RuntimeException, explain why
+DuplicateKeyExcepion Decided that record id consists of name and address
