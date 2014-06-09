@@ -9,15 +9,15 @@ Table of Contents
     a. Launching the server
     b. Launching the network client
     c. Launching the stand-alone mode
-4. Using the server
+4. Server
     a. Configuring
     b. Using the server
-5. Using the network client
+5. Network client
     a. Configuring
     b. Using the network client
-6. Using the stand-alone mode
+6. Stand-alone mode
     a. Configuring
-    b. Using the stand-alone
+    b. Using the stand-alone mode
 7. Using the client GUI
     a. Booking a contractor
     b. Un-booking a contractor
@@ -54,7 +54,7 @@ Table of Contents
         java -jar runme.jar alone
 
 
-4. Using the server
+4. Server
 -------------------
   The server accepts incoming connections from clients and allows them to interact with the database. Upon launching the
   server, the user is asked to select a database file to work with.
@@ -72,7 +72,7 @@ Table of Contents
         exit the application.
 
 
-5. Using the network client
+5. Network client
 -------------------
   The network client allows a user to interact with a remote database. The client can perform various operations on a
   list of contractors in the database. Upon launching the network client, the user is asked to enter the hostname that
@@ -91,7 +91,7 @@ Table of Contents
   Note: the network client must have a running server it can connect to.
 
 
-6. Using the stand-alone mode
+6. Stand-alone mode
 -----------------------------
   The stand-alone mode allows the user to use the database and client as one process without the need for a network.
   Only one virtual machine is used. Other clients won't be able to connect to this process.

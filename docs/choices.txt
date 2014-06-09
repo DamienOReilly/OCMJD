@@ -5,9 +5,11 @@ Table of Contents
 -----------------
 1. Code style
 2. High level architecture decisions
-3. Data layer
-4. Networking
-
+3. Data access tier
+4. Locking
+5. Business tier
+6. Networking
+7. Presentation tier
 
 
 1. Code style
@@ -22,7 +24,7 @@ Table of Contents
   residing in the suncertify.ui package.
 
   I have used javadoc style comments for all classes, methods and almost all member variables. This makes code cleaner
-  to read and is more friendly for a junior programmer. In some cases where complexx code is used, I use a small comment
+  to read and is more friendly for a junior programmer. In some cases where complex code is used, I use a small comment
   in the method to explain what is happening.
 
 
@@ -42,11 +44,15 @@ Table of Contents
 
 
 3. Data access
--------------
+--------------
   Overview
     My Data class implements the DB interface as per requirements of this assignment. The Data class delegates database
     I/O operations to the DatabaseIO while it delegates lock management to the DatabaseLockHandler class. This keeps the
     Data class small, tidy and easy to follow.
+
+  Database factory
+    I use a factory pattern to initialise an instance of DB for a given database path. There should only be one instance
+    of the database allowed.
 
   Database access
     In the DatabaseIO class, I use RandomFileAccess over FileInputStream as in my opinion it is easier to use and was
@@ -65,30 +71,58 @@ Table of Contents
     exception is thrown if there is a problem thrown by the security manager. Since this is not related here, I felt a
     separate exception was suitable for this application. I left it as an un-checked exception. I do not believe
     SecurityException should be caught and handled. If a SecurityException occurs, it indicates a security hole in
-    design, and this should be fixed, rather than handled.
-
-  Locking.
-    With regards to locking, I use a HashMap containing a record id and a cookie. A cookie is generated form current
-    system time in nano-seconds which I deemed to be sufficiently unique. This cookie is generated whenever a lock
-    request is made a against a record id and inserted into the HashMap. This cookie must be used to manipulate and
-    finally unlock a record.
-
-    Access to the HashMap is synchronized using a ReentrantLock from concurrent package. If a request comes in to lock
-    an already locked record, the current thread is left "await"ing using a Condition. The original lockee when done
-    signals all the threads waiting using a Condition also.
-
-    Further to locking, access to database IO operations are also synchronized using a Reentrantlock. This will prevent
-    multiple threads from trying to write to the databse at the same time.
-
-    I oped to use the concurrent package over "synchronized" keyword as the concurrent package was relatively new to me
-    and it was a good opportunity for experience. I do not feel it adds complexity to the project.
+    implementation, and this should be fixed, rather than handled at runtime.
 
 
+4. Locking
+----------
+  With regards to locking, I use a HashMap containing a mapping between a record id and a cookie. A cookie is generated
+  from current system time in nano-seconds which I deemed to be sufficiently unique. This cookie is generated whenever a
+  lock request is made a against a record id and inserted into the HashMap, providing it is not already locked,. This
+  cookie must be used to manipulate and finally unlock a record.
+
+  Access to the HashMap is synchronized using a ReentrantLock from concurrent package. If a request comes in to lock an
+  already locked record, the current thread is left "await"ing using a Condition. The original locker when done, signals
+  all the threads waiting using a Condition also.
+
+  Further to locking, access to database IO operations are also synchronized using a Reentrantlock. This will prevent
+  multiple threads from trying to write to the database at the same time.
+
+  I oped to use the concurrent package over "synchronized" keyword as the concurrent package was relatively new to me
+  and it was a good opportunity for experience. I do not feel it adds complexity to the project and should not be
+  difficult for a junior programmer to understand.
+
+  Low level locking and database I/O operations are not exposed to clients. They instead must interact with the
+  business tier.
 
 
+5. Business tier
+----------------
+  The business tier provides services to clients such as dealing with requests or executing logic. In this layer I
+  expose a API that it suitable for the client to use, such as booking a record, or searching for records. The business
+  tier then deals with calling the lowe level database operations. For example a client can make a call to the business
+  tier to book a contractor. The business tier will then lock a record, update the contractor record with the customer
+  id that the contractor is been booked against, finally unlocking the record for any future client requests against
+  this record. The business tier will throw exceptions to clients letting them know if problems arise when dealing with
+  their request.
+
+  Clients will interact with in instance of the ContractorService interface to use the business tier API.
+  ContractorServiceImpl contains an implementation of this interface.
+
+  The business tier can be accessed remotely using the RemoteContractorService interface which extends ContractorService
+  interface. This allows the business tier to be accessed over RMI. Please see "6. Network" for more information. I use
+  a fact
+
+  I wanted to expose an API to clients that is common for both the network and stand-alone client modes. By giving the
+  client an instance of ContractorService or RemoteContractorService (which is an interface extension of
+  ContractorService), the client code is not aware if it is accessing the business tier locally or remotely over RMI,
+  and the exact same code is used in both launch modes. This reduces code replication and complexity and increases
+  maintainability. I believe this is a good coding practice.
 
 
-
-
-SecurityException - RuntimeException, explain why
-DuplicateKeyExcepion Decided that record id consists of name and address
+6. Networking
+-------------
+  I choose to use RMI instead of sockets. An RMI implementation needs less code and is relatively easy to understand, so
+  is suitable for junior programmers. RMI gives the benefit of hiding object serialization and networking, while with
+  sockets, you would have to implement this yourself, which increases the chances of introducing bugs. RMI also takes
+  care of multi-threading for you which this would have to be implemented yourself if using sockets.
