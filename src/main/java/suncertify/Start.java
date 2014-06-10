@@ -35,10 +35,13 @@ class Start {
         ApplicationMode mode = null;
 
         if (args.length == 0) {
+            logger.log(Level.INFO, "Launching network client.");
             mode = ApplicationMode.NETWORK;
         } else if (args[0].equals("alone")) {
+            logger.log(Level.INFO, "Launching stand-alone mode.");
             mode = ApplicationMode.ALONE;
         } else if (args[0].equals("server")) {
+            logger.log(Level.INFO, "Launching server.");
             mode = ApplicationMode.SERVER;
         } else {
             printHelp(args);
@@ -67,10 +70,10 @@ class Start {
     }
 
     private static void printHelp(String[] args) {
-        System.err.println("Invalid parameters: " + Arrays.toString(args));
-        System.err.println("Usage: ");
-        System.err.println("java -jar runme.jar server\t- server");
-        System.err.println("java -jar runme.jar alone\t- stand-alone mode");
-        System.err.println("java -jar runme.jar (no args)\t- network client");
+        System.err.println("Invalid parameter: " + Arrays.toString(args));
+        System.err.println("Usage:\n"
+                + "java -jar runme.jar server\t- server\n"
+                + "java -jar runme.jar alone\t- stand-alone mode\n"
+                + "java -jar runme.jar (no args)\t- network client\n");
     }
 }

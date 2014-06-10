@@ -3,13 +3,16 @@ Bodgitt and Scarper, LLC 2.1.2 implementation choices.
 
 Table of Contents
 -----------------
-1. Code style
-2. High level architecture decisions
-3. Data access tier
-4. Locking
-5. Business tier
-6. Networking
-7. Presentation tier
+1.  Code style
+2.  Application architectural decisions
+3.  Data access tier
+4.  Locking
+5.  Business tier
+6.  Domain object
+7.  Networking
+8.  Presentation tier
+9.  Properties persistence
+10. Other considerations
 
 
 1. Code style
@@ -28,13 +31,14 @@ Table of Contents
   in the method to explain what is happening.
 
 
-2. High level architecture decisions
+2. Application architectural decisions
 ------------------------------------
   In order to facilitate good design practices and future ease of development, I opted to use a three-tier architecture
   approach. This separates out the user interface, business logic and data access as independent modules which allows
   for modules to change or upgrade in future.
 
   The three layers I implement are:
+
   - presentation tier displays visual information to the user such as contractors and their current state. It also
     provides interactive components to interact with the business tier.
 
@@ -43,12 +47,11 @@ Table of Contents
   - data access tier which is concerned with providing low level operations and persistence on the database.
 
 
-3. Data access
+3. Data access tier
 --------------
-  Overview
-    My Data class implements the DB interface as per requirements of this assignment. The Data class delegates database
-    I/O operations to the DatabaseIO while it delegates lock management to the DatabaseLockHandler class. This keeps the
-    Data class small, tidy and easy to follow.
+  My Data class implements the DB interface as per requirements of this assignment. The Data class delegates database
+  I/O operations to the DatabaseIO while it delegates lock management to the DatabaseLockHandler class. This keeps the
+  Data class small, tidy and easy to follow.
 
   Database factory
     I use a factory pattern to initialise an instance of DB for a given database path. There should only be one instance
@@ -78,7 +81,7 @@ Table of Contents
 ----------
   With regards to locking, I use a HashMap containing a mapping between a record id and a cookie. A cookie is generated
   from current system time in nano-seconds which I deemed to be sufficiently unique. This cookie is generated whenever a
-  lock request is made a against a record id and inserted into the HashMap, providing it is not already locked,. This
+  lock request is made a against a record id and inserted into the HashMap, providing it is not already locked;. This
   cookie must be used to manipulate and finally unlock a record.
 
   Access to the HashMap is synchronized using a ReentrantLock from concurrent package. If a request comes in to lock an
@@ -111,7 +114,7 @@ Table of Contents
 
   The business tier can be accessed remotely using the RemoteContractorService interface which extends ContractorService
   interface. This allows the business tier to be accessed over RMI. Please see "6. Network" for more information. I use
-  a fact
+  a factory pattern again to return either a remote or local service, depending on launch mode called ServiceFactory.
 
   I wanted to expose an API to clients that is common for both the network and stand-alone client modes. By giving the
   client an instance of ContractorService or RemoteContractorService (which is an interface extension of
@@ -120,9 +123,91 @@ Table of Contents
   maintainability. I believe this is a good coding practice.
 
 
-6. Networking
+6. Domain object
+----------------
+  I created a domain object to represent a contractor. This is mainly used in the presentations tier's model. Conversion
+  is done from the data tier's string array to a Contractor object and vice-versa. I felt this makes the presentation
+  code cleaner, and easier to maintain by using this well structured object.
+
+
+7. Networking
 -------------
   I choose to use RMI instead of sockets. An RMI implementation needs less code and is relatively easy to understand, so
-  is suitable for junior programmers. RMI gives the benefit of hiding object serialization and networking, while with
-  sockets, you would have to implement this yourself, which increases the chances of introducing bugs. RMI also takes
-  care of multi-threading for you which this would have to be implemented yourself if using sockets.
+  is suitable for junior programmers. RMI gives the benefit of hiding object serialization and networking, and adds a
+  layer of abstraction, while with sockets, you would have to implement this yourself, which increases the chances of
+  introducing bugs. The client in my architecture is merely interacting with an object (instance of ContractorService)
+  and is not aware of any networking. RMI also takes care of multi-threading, which you would have to implement yourself
+  if using sockets.
+
+  The ContractorService business tier is exposed over RMI by the RemoteContractorService interface which extends
+  ContractorService and Remote. RemoteContractorServiceImpl in turn implements this interface. All business tier methods
+  exposed over RMI throw RemoteException.
+
+  The Server class is responsible for starting the RMI registry and exporting the RemoteContractorService
+  implementation. Only one instance of the RMI server can be started at a given time.
+
+
+8. Presentation tier
+--------------------
+  In my UI classes, I oped to favour composition over inheritance. For example, my ClientFrame class instantiates a
+  JFrame which represents a "has-a" relationship, rather than extending JFrame which represents "is-a" relationship. I
+  did not need to extend the functionality of the JFrame class or override any of its methods for any reason so I felt
+  it wasn't necessary to extend this class and so felt composition was better design practice in such cases.
+
+  The presentation tier has three distinct sections.
+
+  - Configuration dialog
+
+  - Server UI
+
+  - Client UI
+
+  The configuration dialog is merely a JDialog that is common for the three different launch modes. It enables the user
+  to configure the application depending on the launch mode using various components on panels. For example in the
+  stand-alone mode, the user can select a database to use with a JFileChooser while in network client mode the user
+  inputs a hostname of a server to connect to. The rest of the code is common between all modes such as passing
+  inputted parameters to the PropertiesManager for persistence. After the JDialog is closed, the next JFrame will open,
+  depending on launch mode.
+
+  The server UI consists of a JFrame with buttons to start and stop the server. I choose to not use the model, view,
+  controller (MVC) design pattern for the server UI as the server UI actions are rather simplistic and I felt that using
+  MVC here was a bit overkill.
+
+  For the client, I choose to use the MVC pattern. This allows for greater future flexibility with minimal impact. For
+  example the 'view' or user interface can be replaced with almost no impact to the model and controller. Using the MVC
+  pattern will result in more code but I feel the benefits of MVC out weight this.
+
+  The controller adds action listeners to interactive components on the UI, while the model represents interaction to
+  the business layer.
+
+  I did not implement the observer pattern, since this was not a requirement, therefore the users must manually click
+  the 'refresh' button to get an updates view of the data from the database.
+
+  With regards to the the JTable on the UI, I choose to use the JTables' model as an extension of AbstractTableModel.
+  This model uses the Contractor domain object and can extract its properties to populate the JTable.
+
+  The client UI is split up into different JPanels. One for the search components, one for the JTable, and one for
+  booking. I felt this makes it easier if sections on the UI need to be replaced in the future.
+
+
+9.  Properties persistence
+--------------------------
+
+  I used a singleton pattern for the PersistenceManager class. The persistence manager saves properties from the
+  configuration dialog which are loaded again on subsequent application launches. The properties are assessable from
+  any part of the application if necessary.
+
+
+10. Other considerations
+------------------------
+
+  Searching
+    The client can search for a contractor based on a name and location, however the business tier and data tier both
+    support searching for any of the properties that make up a contractor record currently. This allows for ease of
+    future development should requirements change to allow searching by another property. As mentioned in
+    "8. Presentation tier" the individual JPanel's allow for the UI to be easily changed to allow expansion or change.
+
+  Logging
+    I have used informative messages via the default logger as to what is happening in its current state. I also log out
+    full stack traces if severe errors occur for troubleshooting problems. This logging is outputted to the the console
+    that the application is launched from.
