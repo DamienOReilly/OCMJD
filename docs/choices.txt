@@ -37,7 +37,7 @@ Table of Contents
   approach. This separates out the user interface, business logic and data access as independent modules which allows
   for modules to change or upgrade in future.
 
-  The three layers I implement are:
+  The three tiers I implement are:
 
   - presentation tier displays visual information to the user such as contractors and their current state. It also
     provides interactive components to interact with the business tier.
@@ -58,16 +58,16 @@ Table of Contents
     of the database allowed.
 
   Database access
-    In the DatabaseIO class, I use RandomFileAccess over FileInputStream as in my opinion it is easier to use and was
-    more suited to this assignment.
+    In the DatabaseIO class, I choose RandomFileAccess instead of FileInputStream as in my opinion it is easier to use
+    and was more suited to this assignment.
 
-    I read in the database schema and store it the DatabaseSchema class and the Field class folds column specific
+    I read in the database schema and store it the DatabaseSchema class and the Field class holds column specific
     details. I did this rather than hard-coding the database schema, as it allows for the database schema to change
     without major impacts to the data tier.
 
   DuplicateKeyException
     The requirements did not state what a duplicate key was, so I decided to use the a combination of a contractor name
-    and location is the key.
+    and location as the key.
 
   SecurityException
     I implemented my own SecurityException rather than using the one in the java.lang package as its docs say that this
@@ -81,12 +81,12 @@ Table of Contents
 ----------
   With regards to locking, I use a HashMap containing a mapping between a record id and a cookie. A cookie is generated
   from current system time in nano-seconds which I deemed to be sufficiently unique. This cookie is generated whenever a
-  lock request is made a against a record id and inserted into the HashMap, providing it is not already locked;. This
-  cookie must be used to manipulate and finally unlock a record.
+  lock request is made a against a record id and inserted into the HashMap, providing it is not already locked. This
+  cookie must be used when manipulating and finally unlocking a record.
 
-  Access to the HashMap is synchronized using a ReentrantLock from concurrent package. If a request comes in to lock an
-  already locked record, the current thread is left "await"ing using a Condition. The original locker when done, signals
-  all the threads waiting using a Condition also.
+  Access to the HashMap is synchronized using a ReentrantLock from the concurrent package. If a request comes in to lock
+  an already locked record, the current thread is left 'await'ing using a Condition. The original locker when done,
+  signals all the threads waiting using a Condition also.
 
   Further to locking, access to database IO operations are also synchronized using a Reentrantlock. This will prevent
   multiple threads from trying to write to the database at the same time.
@@ -103,7 +103,7 @@ Table of Contents
 ----------------
   The business tier provides services to clients such as dealing with requests or executing logic. In this layer I
   expose a API that it suitable for the client to use, such as booking a record, or searching for records. The business
-  tier then deals with calling the lowe level database operations. For example a client can make a call to the business
+  tier then deals with calling the low level database operations. For example, a client can make a call to the business
   tier to book a contractor. The business tier will then lock a record, update the contractor record with the customer
   id that the contractor is been booked against, finally unlocking the record for any future client requests against
   this record. The business tier will throw exceptions to clients letting them know if problems arise when dealing with
@@ -113,8 +113,9 @@ Table of Contents
   ContractorServiceImpl contains an implementation of this interface.
 
   The business tier can be accessed remotely using the RemoteContractorService interface which extends ContractorService
-  interface. This allows the business tier to be accessed over RMI. Please see "6. Network" for more information. I use
-  a factory pattern again to return either a remote or local service, depending on launch mode called ServiceFactory.
+  interface. This allows the business tier to be accessed over RMI. Please see "7. Networking" for more information. I
+  use a factory pattern again to return either a remote or local service, depending on launch mode called
+  ServiceFactory.
 
   I wanted to expose an API to clients that is common for both the network and stand-alone client modes. By giving the
   client an instance of ContractorService or RemoteContractorService (which is an interface extension of
@@ -134,7 +135,7 @@ Table of Contents
 -------------
   I choose to use RMI instead of sockets. An RMI implementation needs less code and is relatively easy to understand, so
   is suitable for junior programmers. RMI gives the benefit of hiding object serialization and networking, and adds a
-  layer of abstraction, while with sockets, you would have to implement this yourself, which increases the chances of
+  layer of abstraction. With sockets, you would have to implement this yourself, which increases the chances of
   introducing bugs. The client in my architecture is merely interacting with an object (instance of ContractorService)
   and is not aware of any networking. RMI also takes care of multi-threading, which you would have to implement yourself
   if using sockets.
@@ -164,7 +165,7 @@ Table of Contents
 
   The configuration dialog is merely a JDialog that is common for the three different launch modes. It enables the user
   to configure the application depending on the launch mode using various components on panels. For example in the
-  stand-alone mode, the user can select a database to use with a JFileChooser while in network client mode the user
+  stand-alone mode, the user can select a database to use with a JFileChooser, while in network client mode the user
   inputs a hostname of a server to connect to. The rest of the code is common between all modes such as passing
   inputted parameters to the PropertiesManager for persistence. After the JDialog is closed, the next JFrame will open,
   depending on launch mode.
@@ -192,7 +193,6 @@ Table of Contents
 
 9.  Properties persistence
 --------------------------
-
   I used a singleton pattern for the PersistenceManager class. The persistence manager saves properties from the
   configuration dialog which are loaded again on subsequent application launches. The properties are assessable from
   any part of the application if necessary.
@@ -200,7 +200,6 @@ Table of Contents
 
 10. Other considerations
 ------------------------
-
   Searching
     The client can search for a contractor based on a name and location, however the business tier and data tier both
     support searching for any of the properties that make up a contractor record currently. This allows for ease of
@@ -208,6 +207,6 @@ Table of Contents
     "8. Presentation tier" the individual JPanel's allow for the UI to be easily changed to allow expansion or change.
 
   Logging
-    I have used informative messages via the default logger as to what is happening in its current state. I also log out
-    full stack traces if severe errors occur for troubleshooting problems. This logging is outputted to the the console
-    that the application is launched from.
+    I log informative messages via the default logger as to what is happening in its current state. I also log out full
+    stack traces if severe errors occur for troubleshooting problems. This logging is outputted to the the console that
+    the application is launched from.
